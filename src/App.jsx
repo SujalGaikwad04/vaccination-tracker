@@ -1,5 +1,6 @@
 import './App.css'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Dashboard from './pages/Dashboard'
 import VaccineTracker from './pages/VaccineTracker'
@@ -9,20 +10,39 @@ import Profile from './pages/Profile'
 import Login from './pages/Login'
 import PublicView from './pages/PublicView'
 
-function App() {
+const AppContent = ({ isLoggedIn, setIsLoggedIn }) => {
+  const location = useLocation();
+  const hideHeaderRoutes = ['/', '/login'];
+
   return (
-    <BrowserRouter>
-      <Header />
+    <>
+      {!hideHeaderRoutes.includes(location.pathname) && <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />}
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/vaccine-tracker" element={<VaccineTracker />} />
         <Route path="/digital-card" element={<DigitalCard />} />
         <Route path="/awareness" element={<Awareness />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/login" element={<Login />} />
         <Route path="/public/:id" element={<PublicView />} />
       </Routes>
+    </>
+  );
+};
+
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('isLoggedIn', isLoggedIn);
+  }, [isLoggedIn]);
+
+  return (
+    <BrowserRouter>
+      <AppContent isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
     </BrowserRouter>
   )
 }

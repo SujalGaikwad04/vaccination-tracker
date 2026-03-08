@@ -1,11 +1,34 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import './Header.css';
 
-const Header = () => {
+const Header = ({ isLoggedIn, setIsLoggedIn }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+  const navigate = useNavigate();
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleAuthAction = () => {
+    setProfileMenuOpen(false);
+    if (isLoggedIn) {
+      if (setIsLoggedIn) setIsLoggedIn(false);
+      navigate('/');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <header className="header-container">
@@ -25,14 +48,14 @@ const Header = () => {
           <button className="profile-btn">
             <div className="profile-img-container">
               <img
-                data-alt="Close up portrait of a smiling baby"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJPGYQYTNVzVliN4t2tO8LjX0EvQXv5XVCO8k-i4thiz2dI4Bm541Cc35a09EuaztjfplgGETfsoPw03bFxsWjV3ObwFQNo4yydbEQPANci5OXIMmeWW7xg4QZPkWMkokvW0vPy9Mcu6SgGMEgxww-_0L2FZYYpV0LmdpqSKkq8ScMstr2UgtPQ5pEsTUb2vg4x6Y0rssiXPf4cO6ISFoPYd2P23LTMooeE_XgP4S9liTUnIc2DWMGjJiLMUo--wRhBLfiBcSkBPQ"
-                alt="Baby"
+                data-alt="Placeholder portrait"
+                src="https://ui-avatars.com/api/?name=Child&background=0D8ABC&color=fff&rounded=true"
+                alt="Child Profile Placeholder"
               />
             </div>
             <div className="profile-info">
               <span className="profile-label">Active Profile</span>
-              <span className="profile-name">Child: Aarav</span>
+              <span className="profile-name">Select Child</span>
             </div>
             <span className="chevron-arrow"></span>
           </button>
@@ -46,15 +69,33 @@ const Header = () => {
 
           <div className="divider"></div>
 
-          <button className="user-btn">
-            <img
-              className="user-avatar"
-              data-alt="Profile picture of parent or guardian"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhrgHkk4ReWg8tP8FX8mwEAZNdFHejpfH3g01USUj1Nflc8PY-1a6Uz08lROuVoyBEKt4m3LYVSiVq4HkZbK6sJCy4iCDv3o-h50bTpCSIQ5IVEG7lR2-kBBtrWeW-kFiDpv50XSpzq6hMzJm5XDYqYfDuMb1LBhLZVrOU-gEXILp96L_K2QqAVryempmZvcMk2H6VPiLRf6sHqQD0VLLsF5NJSPC7RFsFfalkgRSvhu2gCm_bqL4lWWC_rbA9_UOssQYJ9h47Z2k"
-              alt="Parent avatar"
-            />
-            <span className="chevron-arrow"></span>
-          </button>
+          <div className="user-profile-container" ref={profileMenuRef}>
+            <button className="user-btn" onClick={() => setProfileMenuOpen(!profileMenuOpen)}>
+              <img
+                className="user-avatar"
+                data-alt="Profile picture of parent or guardian"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhrgHkk4ReWg8tP8FX8mwEAZNdFHejpfH3g01USUj1Nflc8PY-1a6Uz08lROuVoyBEKt4m3LYVSiVq4HkZbK6sJCy4iCDv3o-h50bTpCSIQ5IVEG7lR2-kBBtrWeW-kFiDpv50XSpzq6hMzJm5XDYqYfDuMb1LBhLZVrOU-gEXILp96L_K2QqAVryempmZvcMk2H6VPiLRf6sHqQD0VLLsF5NJSPC7RFsFfalkgRSvhu2gCm_bqL4lWWC_rbA9_UOssQYJ9h47Z2k"
+                alt="Parent avatar"
+              />
+              <span className={`chevron-arrow ${profileMenuOpen ? 'up' : ''}`}></span>
+            </button>
+
+            <div className={`profile-dropdown ${profileMenuOpen ? 'open' : ''}`}>
+              <button
+                className="dropdown-item"
+                onClick={() => { setProfileMenuOpen(false); navigate('/profile'); }}
+              >
+                Profile & Settings
+              </button>
+              <div className="dropdown-divider"></div>
+              <button
+                className={`dropdown-item ${isLoggedIn ? 'logout-item' : 'text-primary'}`}
+                onClick={handleAuthAction}
+              >
+                {isLoggedIn ? 'Logout' : 'Login'}
+              </button>
+            </div>
+          </div>
 
           {/* Hamburger Menu (Mobile Only) */}
           <button
@@ -76,7 +117,6 @@ const Header = () => {
           <NavLink to="/vaccine-tracker" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Vaccine Tracker</NavLink>
           <NavLink to="/digital-card" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Digital Card</NavLink>
           <NavLink to="/awareness" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Awareness</NavLink>
-          <NavLink to="/profile" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>Profile</NavLink>
         </div>
       </nav>
 
@@ -87,13 +127,13 @@ const Header = () => {
           <button className="profile-btn">
             <div className="profile-img-container">
               <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJPGYQYTNVzVliN4t2tO8LjX0EvQXv5XVCO8k-i4thiz2dI4Bm541Cc35a09EuaztjfplgGETfsoPw03bFxsWjV3ObwFQNo4yydbEQPANci5OXIMmeWW7xg4QZPkWMkokvW0vPy9Mcu6SgGMEgxww-_0L2FZYYpV0LmdpqSKkq8ScMstr2UgtPQ5pEsTUb2vg4x6Y0rssiXPf4cO6ISFoPYd2P23LTMooeE_XgP4S9liTUnIc2DWMGjJiLMUo--wRhBLfiBcSkBPQ"
-                alt="Baby"
+                src="https://ui-avatars.com/api/?name=Child&background=0D8ABC&color=fff&rounded=true"
+                alt="Child Profile Placeholder"
               />
             </div>
             <div className="profile-info">
               <span className="profile-label">Active Profile</span>
-              <span className="profile-name">Child: Aarav</span>
+              <span className="profile-name">Select Child</span>
             </div>
             <span className="chevron-arrow"></span>
           </button>
@@ -105,7 +145,6 @@ const Header = () => {
           <NavLink to="/vaccine-tracker" className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>Vaccine Tracker</NavLink>
           <NavLink to="/digital-card" className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>Digital Card</NavLink>
           <NavLink to="/awareness" className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>Awareness</NavLink>
-          <NavLink to="/profile" className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>Profile</NavLink>
         </nav>
       </div>
     </header>
