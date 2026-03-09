@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import './VaccineTracker.css';
 
-const VaccineTracker = () => {
+const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
     const [activeFilter, setActiveFilter] = useState('all');
     const [activeSideNav, setActiveSideNav] = useState('overview');
 
-    const childData = {
+    const defaultChild = {
         name: 'Leo',
         age: '18 Months',
         gender: 'Male',
@@ -18,8 +18,33 @@ const VaccineTracker = () => {
         parentAvatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCGwt6xTt0UUu60XvmwYQNnb9Bdyp9u8BPjBiXvDdYE0SyGj6lXY2ugB9-CFWpD7geaYwkM8M8M4mQtVLD14PquywpqEX_tuLxjI1zGzpWgoNPk6aPr7zTAQG_NVXQIbQpxl1WtOGLNkJzZ57TB8LgG5avsrdb0HCNvHx167_5z7aUdsQgOTheT4Euo55fgeZ7kXAsEPG-dZVVlBhvLrWo5w4QxkBPzpD9XlP8GjoqdOkAgb4eJ4hCxO5Wwr8NdLKOPx6wWbA9w6h0',
     };
 
-    const vaccines = [
+    const childData = activeChild ? {
+        ...defaultChild,
+        name: activeChild.name,
+        age: activeChild.dob ? 'Infant' : 'Newborn', // Simplified calculating age for demo
+        gender: activeChild.gender || defaultChild.gender,
+        dob: activeChild.dob || defaultChild.dob,
+        completedVaccines: activeChild.vaccines ? activeChild.vaccines.filter(v => v.status === 'done').length : 0,
+        totalVaccines: activeChild.vaccines ? activeChild.vaccines.length : 16,
+        nextDueDate: activeChild.vaccines ?
+            (activeChild.vaccines.find(v => v.status === 'due' || v.status === 'upcoming')?.dueDate ?
+                new Date(activeChild.vaccines.find(v => v.status === 'due' || v.status === 'upcoming').dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'None'
+            ) : defaultChild.nextDueDate,
+        overallProgress: activeChild.vaccines ? Math.round((activeChild.vaccines.filter(v => v.status === 'done').length / activeChild.vaccines.length) * 100) || 0 : (activeChild.progress || 0),
+        avatarUrl: activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=ec5b13&color=fff&size=128&rounded=false`
+    } : defaultChild;
+
+    const vaccines = activeChild && activeChild.vaccines && activeChild.vaccines.length > 0 ? activeChild.vaccines.map(v => ({
+        id: v.id,
+        name: v.name,
+        dose: v.fullForm || v.when, // Fallback dose string if fullForm is undefined
+        recommendedAge: v.when,
+        dueDate: new Date(v.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        status: v.status === 'due' ? 'upcoming' : v.status, // simplifying exact due to upcoming for filter
+        action: v.status === 'done' ? 'view-details' : (v.status === 'missed' ? 'recovery' : 'mark-done'),
+    })) : [
         {
+            id: 1,
             name: 'DTP',
             dose: '4th Dose',
             recommendedAge: '15-18 Months',
@@ -85,6 +110,55 @@ const VaccineTracker = () => {
     const radius = 42;
     const circumference = 2 * Math.PI * radius; // ~263.89
     const offset = circumference - (childData.overallProgress / 100) * circumference;
+
+    const [processingId, setProcessingId] = useState(null);
+
+    const handleMarkDone = async (vaccineId) => {
+        if (!activeChild || !vaccineId) return;
+
+        setProcessingId(vaccineId);
+        try {
+            const token = localStorage.getItem('token');
+            const today = new Date().toISOString().split('T')[0];
+
+            const response = await fetch(`http://localhost:5000/api/vaccines/${vaccineId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status: 'done', dateAdministered: today })
+            });
+
+            if (response.ok) {
+                // To reflect locally without a full network fetch again immediately
+                if (childProfiles && setChildProfiles) {
+                    const updatedProfiles = childProfiles.map(child => {
+                        if (child.id === activeChild.id) {
+                            const updatedVaccines = child.vaccines.map(vac =>
+                                vac.id === vaccineId
+                                    ? { ...vac, status: 'done', dueDate: today }
+                                    : vac
+                            );
+
+                            const completed = updatedVaccines.filter(v => v.status === 'done').length;
+                            const progress = updatedVaccines.length > 0 ? Math.round((completed / updatedVaccines.length) * 100) : 0;
+
+                            return { ...child, vaccines: updatedVaccines, completed, progress };
+                        }
+                        return child;
+                    });
+                    setChildProfiles(updatedProfiles);
+                }
+            } else {
+                console.error('Failed to update vaccine status');
+            }
+        } catch (err) {
+            console.error('Error marking vaccine as done:', err);
+        } finally {
+            setProcessingId(null);
+        }
+    };
 
     return (
         <>
@@ -245,7 +319,13 @@ const VaccineTracker = () => {
                                                         <button className="vt-btn-recovery">Recovery Plan</button>
                                                     )}
                                                     {v.action === 'mark-done' && (
-                                                        <button className="vt-btn-mark-done">Mark Done</button>
+                                                        <button
+                                                            className="vt-btn-mark-done"
+                                                            onClick={() => handleMarkDone(v.id)}
+                                                            disabled={processingId === v.id}
+                                                        >
+                                                            {processingId === v.id ? 'Updating...' : 'Mark Done'}
+                                                        </button>
                                                     )}
                                                     {v.action === 'view-details' && (
                                                         <button className="vt-btn-view">

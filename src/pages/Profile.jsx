@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Profile.css';
 
-const Profile = () => {
+const Profile = ({ setIsLoggedIn }) => {
+    const navigate = useNavigate();
     const [userEmail, setUserEmail] = useState('');
     const [fullName, setFullName] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
@@ -31,9 +32,13 @@ const Profile = () => {
         setLoading(true);
         setMessage('');
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/profile', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ email: userEmail, full_name: fullName, mobile_number: mobileNumber, age, profile_picture: profilePicture })
             });
             const data = await response.json();
@@ -49,6 +54,14 @@ const Profile = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('token');
+        if (setIsLoggedIn) setIsLoggedIn(false);
+        navigate('/');
     };
 
     return (
@@ -366,7 +379,7 @@ const Profile = () => {
             </div>
 
             <div className="profile-logout-section">
-                <button className="btn-logout">
+                <button className="btn-logout" onClick={handleLogout}>
                     <span className="font-icon">logout</span>
                     <span>Log Out of Account</span>
                 </button>

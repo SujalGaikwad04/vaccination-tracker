@@ -71,6 +71,7 @@ const Login = ({ setIsLoggedIn }) => {
                 if (setIsLoggedIn) setIsLoggedIn(true);
                 // Save user info into localStorage
                 localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('token', data.token);
                 navigate('/profile');
             } else {
                 setError(data.error || 'Invalid OTP');

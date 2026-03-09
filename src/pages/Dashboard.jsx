@@ -1,36 +1,104 @@
 import React, { useState } from 'react';
 import './Dashboard.css';
+import { generateVaccineSchedule } from '../utils/vaccinationData';
 
-const Dashboard = () => {
-    const [children, setChildren] = useState([]);
-    const [activeChildIndex, setActiveChildIndex] = useState(0);
+const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiveChildIndex }) => {
+    const children = childProfiles || [];
     const [showAddModal, setShowAddModal] = useState(false);
 
-    const handleAddChild = (e) => {
+    const handleAddChild = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const name = formData.get('fullName');
+        const gender = formData.get('gender');
+        let avatarUrl = '';
+        if (gender === 'male') {
+            avatarUrl = '/baby-boy.png';
+        } else if (gender === 'female') {
+            avatarUrl = '/baby-girl.png';
+        } else {
+            avatarUrl = `https://ui-avatars.com/api/?name=${name}&background=ec5b13&color=fff&size=128&rounded=false`;
+        }
 
-        const newChild = {
-            id: Date.now(),
+        const dob = formData.get('dob');
+        const generatedVaccines = generateVaccineSchedule(dob);
+
+        const newChildData = {
             name: name,
-            dob: formData.get('dob'),
-            gender: formData.get('gender'),
+            dob: dob,
+            gender: gender,
             bloodGroup: formData.get('bloodGroup'),
-            progress: 0,
-            completed: 0,
-            upcoming: 0,
-            missed: 0,
-            vaccines: []
+            avatarUrl: avatarUrl,
+            vaccines: generatedVaccines
         };
 
-        const newChildren = [...children, newChild];
-        setChildren(newChildren);
-        setActiveChildIndex(newChildren.length - 1);
-        setShowAddModal(false);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/children', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(newChildData)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                const newChild = {
+                    id: data.childId,
+                    name: name,
+                    dob: dob,
+                    gender: gender,
+                    bloodGroup: formData.get('bloodGroup'),
+                    avatarUrl: avatarUrl,
+                    progress: 0,
+                    completed: 0,
+                    upcoming: generatedVaccines.filter(v => v.status === 'upcoming').length,
+                    missed: generatedVaccines.filter(v => v.status === 'missed').length,
+                    vaccines: generatedVaccines
+                };
+
+                const newChildren = [...children, newChild];
+                setChildProfiles(newChildren);
+                setActiveChildIndex(newChildren.length - 1);
+                setShowAddModal(false);
+            } else {
+                console.error('Failed to add child');
+            }
+        } catch (err) {
+            console.error('Error adding child:', err);
+        }
     };
 
     const activeChild = children[activeChildIndex];
+
+    const handleDeleteChild = async () => {
+        if (window.confirm(`Are you sure you want to delete ${activeChild.name}'s profile? This action cannot be undone.`)) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:5000/api/children/${activeChild.id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const newChildren = children.filter((_, index) => index !== activeChildIndex);
+                    setChildProfiles(newChildren);
+                    if (newChildren.length > 0) {
+                        setActiveChildIndex(newChildren.length - 1);
+                    } else {
+                        setActiveChildIndex(0);
+                    }
+                } else {
+                    console.error('Failed to delete child');
+                }
+            } catch (err) {
+                console.error('Error deleting child:', err);
+            }
+        }
+    };
 
     return (
         <div className="dashboard-container relative min-h-screen text-slate-900 dark:text-slate-100">
@@ -63,7 +131,7 @@ const Dashboard = () => {
                             {/* Child Overview Hero */}
                             <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-8 items-center">
                                 <div className="size-32 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-sm">
-                                    <img className="w-full h-full object-cover" data-alt="Detailed portrait of {activeChild.name} the baby" src={`https://ui-avatars.com/api/?name=${activeChild.name}&background=ec5b13&color=fff&size=128&rounded=false`} />
+                                    <img className="w-full h-full object-cover" data-alt={`Detailed portrait of ${activeChild.name} the baby`} src={activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=ec5b13&color=fff&size=128&rounded=false`} />
                                 </div>
                                 <div className="flex-1 space-y-4 w-full">
                                     <div className="flex flex-wrap justify-between items-start gap-4">
@@ -73,9 +141,18 @@ const Dashboard = () => {
                                                 <span className="material-symbols-outlined text-sm">cake</span> {activeChild.dob ? 'DOB: ' + activeChild.dob : 'Newborn'}
                                             </p>
                                         </div>
-                                        <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-lg">verified</span>
-                                            Vaccine Confidence: High
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 hidden sm:flex">
+                                                <span className="material-symbols-outlined text-lg">verified</span>
+                                                Vaccine Confidence: High
+                                            </div>
+                                            <button
+                                                onClick={handleDeleteChild}
+                                                className="bg-white hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 border border-slate-200 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-800/50 w-9 h-9 rounded-full flex flex-shrink-0 items-center justify-center transition-all shadow-sm group"
+                                                title="Delete Profile"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">delete</span>
+                                            </button>
                                         </div>
                                     </div>
                                     <div className="space-y-2">
@@ -172,39 +249,27 @@ const Dashboard = () => {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                            <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                                                <td className="px-6 py-4 font-semibold">Hepatitis B</td>
-                                                <td className="px-6 py-4 text-sm text-slate-500">Dose 3</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Completed</span>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-slate-500">Jan 15, 2024</td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <button className="text-slate-400 hover:text-primary"><span className="material-symbols-outlined">receipt_long</span></button>
-                                                </td>
-                                            </tr>
-                                            <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                                                <td className="px-6 py-4 font-semibold">Rotavirus</td>
-                                                <td className="px-6 py-4 text-sm text-slate-500">Dose 2</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">Missed</span>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-slate-500">Feb 10, 2024</td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <button className="text-primary font-bold text-xs">Reschedule</button>
-                                                </td>
-                                            </tr>
-                                            <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                                                <td className="px-6 py-4 font-semibold">Influenza</td>
-                                                <td className="px-6 py-4 text-sm text-slate-500">Annual</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Upcoming</span>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-slate-500">Aug 12, 2024</td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <button className="text-slate-400 hover:text-primary"><span className="material-symbols-outlined">more_vert</span></button>
-                                                </td>
-                                            </tr>
+                                            {activeChild.vaccines && activeChild.vaccines.slice(0, 5).map((v, i) => (
+                                                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                                                    <td className="px-6 py-4 font-semibold">{v.name}</td>
+                                                    <td className="px-6 py-4 text-sm text-slate-500">{v.when}</td>
+                                                    <td className="px-6 py-4">
+                                                        {v.status === 'done' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Completed</span>}
+                                                        {v.status === 'missed' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">Missed</span>}
+                                                        {v.status === 'upcoming' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Upcoming</span>}
+                                                        {v.status === 'due' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">Due Now</span>}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-slate-500">
+                                                        {new Date(v.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <button className="text-slate-400 hover:text-primary"><span className="material-symbols-outlined">more_vert</span></button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {(!activeChild.vaccines || activeChild.vaccines.length === 0) && (
+                                                <tr><td colSpan="5" className="px-6 py-8 text-center text-slate-500">No vaccines generated.</td></tr>
+                                            )}
                                         </tbody>
                                     </table>
                                 </div>

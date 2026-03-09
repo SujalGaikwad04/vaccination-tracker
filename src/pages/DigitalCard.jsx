@@ -1,8 +1,8 @@
 import React from 'react';
 import './DigitalCard.css';
 
-const DigitalCard = () => {
-    const childData = {
+const DigitalCard = ({ activeChild }) => {
+    const defaultData = {
         fullName: 'Aarav Sharma',
         dob: 'May 12, 2021',
         ageGender: '2 Years • Male',
@@ -12,7 +12,24 @@ const DigitalCard = () => {
         avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDIq8omTrv-rkbWebLfpz2buNOTfQhet_9v2_LidMKkn12sdd5KbM9qthUOWHfRgzNR5fZa8VrVH1oshekaMTfwoJT7oOlBhn7HdIzo9NN5X1bXuWqSrq-ju_e-UYQqB1RKfWB9o-cKOE5UHfk7S5qCG_ieTilvLSOaDLiomXBQs9BFD494XSJ4o6GqtzxGlgneZlJjiv-sBz0ieNobubYS8l0RTLDsKcQPAikD1UO27RkdkpWCxdNvKX7XpO7V6wz9YazsPw9Fxz8',
     };
 
-    const vaccines = [
+    const childData = activeChild ? {
+        ...defaultData,
+        fullName: activeChild.name,
+        dob: activeChild.dob || defaultData.dob,
+        ageGender: `Infant • ${activeChild.gender || 'Male'}`,
+        bloodGroup: activeChild.bloodGroup || defaultData.bloodGroup,
+        avatarUrl: activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=0D8ABC&color=fff&size=128&rounded=false`,
+    } : defaultData;
+
+    const vaccines = activeChild && activeChild.vaccines && activeChild.vaccines.length > 0 ? activeChild.vaccines.map(v => ({
+        name: v.name,
+        dot: v.status === 'done' ? 'green' : (v.status === 'due' || v.status === 'upcoming' ? 'blue' : 'red'), // red for missed
+        dateGiven: v.status === 'done' ? new Date(v.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '--/--/----',
+        nextDue: v.status === 'done' ? 'COMPLETED' : new Date(v.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        nextDueType: v.status === 'done' ? 'completed' : (v.status === 'missed' ? 'overdue' : 'pending'), // ensure styling matches overdue/pending/completed
+        administeredBy: v.status === 'done' ? 'Authorized Clinic' : '-',
+        batchNo: v.status === 'done' ? 'VC-' + Math.floor(Math.random() * 90000 + 10000) : '-',
+    })) : [
         {
             name: 'BCG',
             dot: 'green',
@@ -230,7 +247,7 @@ const DigitalCard = () => {
                         <div className="dc-stat-content">
                             <div className="dc-stat-label">Completed</div>
                             <div className="dc-stat-value">
-                                12 / 16 <span className="stat-light">(75%)</span>
+                                {activeChild && activeChild.vaccines && activeChild.vaccines.length > 0 ? activeChild.vaccines.filter(v => v.status === 'done').length : 12} / {activeChild && activeChild.vaccines && activeChild.vaccines.length > 0 ? activeChild.vaccines.length : 16} <span className="stat-light">({activeChild && activeChild.vaccines && activeChild.vaccines.length > 0 ? Math.round((activeChild.vaccines.filter(v => v.status === 'done').length / activeChild.vaccines.length) * 100) : 75}%)</span>
                             </div>
                         </div>
                     </div>
@@ -241,8 +258,8 @@ const DigitalCard = () => {
                         </div>
                         <div className="dc-stat-content">
                             <div className="dc-stat-label">Last Vaccine</div>
-                            <div className="dc-stat-value">Polio Booster 1</div>
-                            <div className="dc-stat-sub">Sep 10, 2023</div>
+                            <div className="dc-stat-value">{activeChild && activeChild.vaccines && activeChild.vaccines.find(v => v.status === 'done')?.name || 'None'}</div>
+                            <div className="dc-stat-sub">{activeChild && activeChild.vaccines && activeChild.vaccines.find(v => v.status === 'done')?.dueDate ? new Date(activeChild.vaccines.find(v => v.status === 'done').dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}</div>
                         </div>
                     </div>
 
@@ -252,8 +269,8 @@ const DigitalCard = () => {
                         </div>
                         <div className="dc-stat-content">
                             <div className="dc-stat-label">Next Due</div>
-                            <div className="dc-stat-value">DTP Booster 2</div>
-                            <div className="dc-stat-sub urgent">In 14 Days</div>
+                            <div className="dc-stat-value">{activeChild && activeChild.vaccines && activeChild.vaccines.find(v => v.status === 'due' || v.status === 'upcoming')?.name || 'None'}</div>
+                            <div className="dc-stat-sub urgent">{activeChild && activeChild.vaccines && activeChild.vaccines.find(v => v.status === 'due' || v.status === 'upcoming')?.dueDate ? new Date(activeChild.vaccines.find(v => v.status === 'due' || v.status === 'upcoming').dueDate).toLocaleDateString('en-GB') : 'Fully Vaxxed'}</div>
                         </div>
                     </div>
                 </div>

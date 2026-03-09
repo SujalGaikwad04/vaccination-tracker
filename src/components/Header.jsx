@@ -2,11 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import './Header.css';
 
-const Header = ({ isLoggedIn, setIsLoggedIn }) => {
+const Header = ({ isLoggedIn, setIsLoggedIn, activeChild, childProfiles, setActiveChildIndex }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
   const navigate = useNavigate();
+
+  const [childSelectorOpen, setChildSelectorOpen] = useState(false);
+  const desktopChildSelectorRef = useRef(null);
+  const mobileChildSelectorRef = useRef(null);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -14,6 +18,13 @@ const Header = ({ isLoggedIn, setIsLoggedIn }) => {
     const handleClickOutside = (event) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
         setProfileMenuOpen(false);
+      }
+
+      const isOutsideDesktop = desktopChildSelectorRef.current && !desktopChildSelectorRef.current.contains(event.target);
+      const isOutsideMobile = mobileChildSelectorRef.current && !mobileChildSelectorRef.current.contains(event.target);
+
+      if (isOutsideDesktop && isOutsideMobile) {
+        setChildSelectorOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -23,6 +34,9 @@ const Header = ({ isLoggedIn, setIsLoggedIn }) => {
   const handleAuthAction = () => {
     setProfileMenuOpen(false);
     if (isLoggedIn) {
+      localStorage.removeItem('user');
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('token');
       if (setIsLoggedIn) setIsLoggedIn(false);
       navigate('/');
     } else {
@@ -44,21 +58,46 @@ const Header = ({ isLoggedIn, setIsLoggedIn }) => {
         </NavLink>
 
         {/* Center: Child Selector (Desktop) */}
-        <div className="header-profile-selector">
-          <button className="profile-btn">
+        <div className="header-profile-selector" ref={desktopChildSelectorRef}>
+          <button className="profile-btn" onClick={() => setChildSelectorOpen(!childSelectorOpen)}>
             <div className="profile-img-container">
               <img
-                data-alt="Placeholder portrait"
-                src="https://ui-avatars.com/api/?name=Child&background=0D8ABC&color=fff&rounded=true"
+                data-alt="Child portrait"
+                src={activeChild ? (activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=0D8ABC&color=fff&rounded=true`) : "https://ui-avatars.com/api/?name=Child&background=0D8ABC&color=fff&rounded=true"}
                 alt="Child Profile Placeholder"
               />
             </div>
             <div className="profile-info">
               <span className="profile-label">Active Profile</span>
-              <span className="profile-name">Select Child</span>
+              <span className="profile-name">{activeChild ? activeChild.name : "Select Child"}</span>
             </div>
-            <span className="chevron-arrow"></span>
+            {childProfiles && childProfiles.length > 0 && (
+              <span className={`chevron-arrow ${childSelectorOpen ? 'up' : ''}`}></span>
+            )}
           </button>
+
+          {childProfiles && childProfiles.length > 0 && (
+            <div className={`profile-dropdown ${childSelectorOpen ? 'open' : ''}`} style={{ top: 'calc(100% + 10px)' }}>
+              {childProfiles.map((child, index) => (
+                <button
+                  key={index}
+                  className={`dropdown-item ${activeChild && activeChild.id === child.id ? 'text-primary font-bold bg-primary/5' : ''}`}
+                  onClick={() => {
+                    setActiveChildIndex(index);
+                    setChildSelectorOpen(false);
+                    if (window.location.pathname !== '/dashboard') {
+                      navigate('/dashboard');
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-2 w-full text-left">
+                    <img src={child.avatarUrl || `https://ui-avatars.com/api/?name=${child.name}&background=ec5b13&color=fff&rounded=true&size=24`} alt={child.name} className="rounded-full w-6 h-6 object-cover" />
+                    <span>{child.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right: Notifications & User */}
@@ -123,20 +162,46 @@ const Header = ({ isLoggedIn, setIsLoggedIn }) => {
       {/* Mobile Menu Dropdown */}
       <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
         {/* Profile Selector (Mobile) */}
-        <div className="mobile-profile">
-          <button className="profile-btn">
+        <div className="mobile-profile" ref={mobileChildSelectorRef}>
+          <button className="profile-btn" onClick={() => setChildSelectorOpen(!childSelectorOpen)}>
             <div className="profile-img-container">
               <img
-                src="https://ui-avatars.com/api/?name=Child&background=0D8ABC&color=fff&rounded=true"
+                src={activeChild ? (activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=0D8ABC&color=fff&rounded=true`) : "https://ui-avatars.com/api/?name=Child&background=0D8ABC&color=fff&rounded=true"}
                 alt="Child Profile Placeholder"
               />
             </div>
             <div className="profile-info">
               <span className="profile-label">Active Profile</span>
-              <span className="profile-name">Select Child</span>
+              <span className="profile-name">{activeChild ? activeChild.name : "Select Child"}</span>
             </div>
-            <span className="chevron-arrow"></span>
+            {childProfiles && childProfiles.length > 0 && (
+              <span className={`chevron-arrow ${childSelectorOpen ? 'up' : ''}`}></span>
+            )}
           </button>
+
+          {childProfiles && childProfiles.length > 0 && (
+            <div className={`profile-dropdown ${childSelectorOpen ? 'open' : ''}`}>
+              {childProfiles.map((child, index) => (
+                <button
+                  key={index}
+                  className={`dropdown-item ${activeChild && activeChild.id === child.id ? 'text-primary font-bold bg-primary/5' : ''}`}
+                  onClick={() => {
+                    setActiveChildIndex(index);
+                    setChildSelectorOpen(false);
+                    closeMobileMenu();
+                    if (window.location.pathname !== '/dashboard') {
+                      navigate('/dashboard');
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-2 w-full text-left">
+                    <img src={child.avatarUrl || `https://ui-avatars.com/api/?name=${child.name}&background=ec5b13&color=fff&rounded=true&size=24`} alt={child.name} className="rounded-full w-6 h-6 object-cover" />
+                    <span>{child.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Navigation Links (Mobile) */}
