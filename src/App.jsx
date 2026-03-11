@@ -16,6 +16,20 @@ const AppContent = ({ isLoggedIn, setIsLoggedIn, childProfiles, setChildProfiles
 
   const activeChild = childProfiles[activeChildIndex] || null;
 
+  useEffect(() => {
+    if (activeChild && activeChild.gender) {
+      if (activeChild.gender.toLowerCase() === 'male' || activeChild.gender.toLowerCase() === 'boy') {
+        document.documentElement.setAttribute('data-theme', 'boy');
+      } else if (activeChild.gender.toLowerCase() === 'female' || activeChild.gender.toLowerCase() === 'girl') {
+        document.documentElement.setAttribute('data-theme', 'girl');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }, [activeChild]);
+
   return (
     <>
       {!hideHeaderRoutes.includes(location.pathname) && <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} activeChild={activeChild} childProfiles={childProfiles} setActiveChildIndex={setActiveChildIndex} />}

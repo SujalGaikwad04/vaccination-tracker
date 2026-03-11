@@ -19,7 +19,8 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
         } else if (gender === 'female') {
             avatarUrl = '/baby-girl.png';
         } else {
-            avatarUrl = `https://ui-avatars.com/api/?name=${name}&background=ec5b13&color=fff&size=128&rounded=false`;
+            const avatarColor = gender === 'male' || gender === 'boy' ? 'C4D9FF' : (gender === 'female' || gender === 'girl' ? 'F5AFAF' : 'ec5b13');
+            avatarUrl = `https://ui-avatars.com/api/?name=${name}&background=${avatarColor}&color=fff&size=128&rounded=false`;
         }
 
         const dob = formData.get('dob');
@@ -164,7 +165,7 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
                             {/* Child Overview Hero */}
                             <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-8 items-center">
                                 <div className="size-32 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-sm">
-                                    <img className="w-full h-full object-cover" data-alt={`Detailed portrait of ${activeChild.name} the baby`} src={activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=ec5b13&color=fff&size=128&rounded=false`} />
+                                    <img className="w-full h-full object-cover" data-alt={`Detailed portrait of ${activeChild.name} the baby`} src={activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=${(activeChild.gender && (activeChild.gender.toLowerCase() === 'male' || activeChild.gender.toLowerCase() === 'boy')) ? 'C4D9FF' : (activeChild.gender && (activeChild.gender.toLowerCase() === 'female' || activeChild.gender.toLowerCase() === 'girl')) ? 'F5AFAF' : 'ec5b13'}&color=fff&size=128&rounded=false`} />
                                 </div>
                                 <div className="flex-1 space-y-4 w-full">
                                     <div className="flex flex-wrap justify-between items-start gap-4">

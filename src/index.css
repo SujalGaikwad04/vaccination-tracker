@@ -1,4 +1,10 @@
 :root {
+  --theme-primary: #ec5b13;
+  --theme-primary-rgb: 236, 91, 19;
+  
+  --theme-secondary: #2beeee;
+  --theme-secondary-rgb: 43, 238, 238;
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -11,6 +17,26 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme="boy"] {
+  --theme-primary: #C4D9FF;
+  --theme-primary-rgb: 196, 217, 255;
+  
+  --theme-secondary: #C5BAFF;
+  --theme-secondary-rgb: 197, 186, 255;
+  
+  --theme-bg: #FBFBFB;
+}
+
+:root[data-theme="girl"] {
+  --theme-primary: #F5AFAF;
+  --theme-primary-rgb: 245, 175, 175;
+  
+  --theme-secondary: #F9DFDF;
+  --theme-secondary-rgb: 249, 223, 223;
+  
+  --theme-bg: #FCF8F8;
 }
 
 a {
@@ -28,7 +54,7 @@ body {
   padding: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: var(--theme-bg, #f8fafc);
   /* light background to complement the header */
 }
 
@@ -60,8 +86,33 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
+    --theme-primary: #ec5b13;
+    --theme-primary-rgb: 236, 91, 19;
+    
+    --theme-secondary: #2beeee;
+    --theme-secondary-rgb: 43, 238, 238;
     color: #213547;
     background-color: #ffffff;
+  }
+
+  :root[data-theme="boy"] {
+    --theme-primary: #C4D9FF;
+    --theme-primary-rgb: 196, 217, 255;
+    
+    --theme-secondary: #C5BAFF;
+    --theme-secondary-rgb: 197, 186, 255;
+
+    --theme-bg: #FBFBFB;
+  }
+
+  :root[data-theme="girl"] {
+    --theme-primary: #F5AFAF;
+    --theme-primary-rgb: 245, 175, 175;
+    
+    --theme-secondary: #F9DFDF;
+    --theme-secondary-rgb: 249, 223, 223;
+
+    --theme-bg: #FCF8F8;
   }
 
   a:hover {
@@ -77,5 +128,5 @@ button:focus-visible {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(236, 91, 19, 0.1);
+  border-bottom: 1px solid rgba(var(--theme-primary-rgb), 0.2);
 }

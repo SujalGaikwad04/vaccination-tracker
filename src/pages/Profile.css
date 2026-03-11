@@ -723,7 +723,7 @@
 }
 
 .profile-footer-header .icon-manage {
-    color: #ec5b13;
+    color: var(--theme-primary);
     font-size: 1.875rem;
 }
 
@@ -733,12 +733,12 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem 2rem;
-    background-color: #ec5b13;
+    background-color: var(--theme-primary);
     /* Primary orange */
     color: #ffffff;
     font-weight: 700;
     border-radius: 0.75rem;
-    box-shadow: 0 10px 15px -3px rgba(236, 91, 19, 0.2);
+    box-shadow: 0 10px 15px -3px rgba(var(--theme-primary-rgb), );
     border: none;
     cursor: pointer;
     transition: all 0.2s;

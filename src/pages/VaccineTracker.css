@@ -82,7 +82,7 @@
     height: 96px;
     border-radius: 50%;
     padding: 3px;
-    border: 2px solid rgba(43, 238, 238, 0.3);
+    border: 2px solid rgba(var(--theme-secondary-rgb), );
     margin-bottom: 1rem;
 }
 
@@ -106,8 +106,8 @@
     margin-top: 0.5rem;
     font-size: 0.75rem;
     font-weight: 900;
-    color: #2beeee;
-    background: rgba(43, 238, 238, 0.1);
+    color: var(--theme-secondary);
+    background: rgba(var(--theme-secondary-rgb), );
     padding: 0.35rem 1rem;
     border-radius: 999px;
     text-transform: uppercase;
@@ -156,7 +156,7 @@
 
 .vt-progress-fill {
     height: 100%;
-    background: #2beeee;
+    background: var(--theme-secondary);
     border-radius: 999px;
     transition: width 0.6s ease;
 }
@@ -205,12 +205,12 @@
 }
 
 .vt-nav-link.active {
-    background: rgba(43, 238, 238, 0.1);
+    background: rgba(var(--theme-secondary-rgb), );
     color: #0f172a;
 }
 
 .vt-nav-link.active .material-symbols-outlined {
-    color: #2beeee;
+    color: var(--theme-secondary);
 }
 
 .vt-nav-link .material-symbols-outlined {
@@ -270,12 +270,12 @@
 }
 
 .vt-resource-icon.teal {
-    background: rgba(43, 238, 238, 0.2);
+    background: rgba(var(--theme-secondary-rgb), );
     color: #0d9488;
 }
 
 .vt-resource-card:hover .vt-resource-icon.teal {
-    background: #2beeee;
+    background: var(--theme-secondary);
     color: #0f172a;
 }
 
@@ -672,7 +672,7 @@
 }
 
 .vt-btn-view:hover {
-    color: #2beeee;
+    color: var(--theme-secondary);
 }
 
 .vt-btn-view .material-symbols-outlined {
@@ -721,7 +721,7 @@
 }
 
 .vt-timeline-title .material-symbols-outlined {
-    color: #2beeee;
+    color: var(--theme-secondary);
     font-size: 1.125rem;
 }
 
@@ -774,9 +774,9 @@
 }
 
 .vt-step-circle.current {
-    background: #2beeee;
+    background: var(--theme-secondary);
     color: #0f172a;
-    box-shadow: 0 0 0 4px rgba(43, 238, 238, 0.2);
+    box-shadow: 0 0 0 4px rgba(var(--theme-secondary-rgb), );
 }
 
 .vt-step-circle.future {
@@ -818,7 +818,7 @@
 }
 
 .vt-step-age.active {
-    color: #2beeee;
+    color: var(--theme-secondary);
 }
 
 .vt-step-text {
@@ -843,7 +843,7 @@
 /* ===== TIP CARD ===== */
 .vt-tip-card {
     background: rgba(204, 251, 241, 0.3);
-    border: 1px solid rgba(43, 238, 238, 0.2);
+    border: 1px solid rgba(var(--theme-secondary-rgb), );
     border-radius: 1rem;
     padding: 1.5rem;
     position: relative;
@@ -877,7 +877,7 @@
 }
 
 .vt-tip-icon-box .material-symbols-outlined {
-    color: #2beeee;
+    color: var(--theme-secondary);
 }
 
 .vt-tip-age-badge {
@@ -1023,7 +1023,7 @@
 .vt-footer-logo {
     width: 24px;
     height: 24px;
-    background: #2beeee;
+    background: var(--theme-secondary);
     border-radius: 0.25rem;
     display: flex;
     align-items: center;
@@ -1058,7 +1058,7 @@
 }
 
 .vt-footer-links a:hover {
-    color: #2beeee;
+    color: var(--theme-secondary);
 }
 
 .vt-footer-copy {

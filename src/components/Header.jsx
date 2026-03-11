@@ -91,7 +91,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, activeChild, childProfiles, setActi
                   }}
                 >
                   <div className="flex items-center gap-2 w-full text-left">
-                    <img src={child.avatarUrl || `https://ui-avatars.com/api/?name=${child.name}&background=ec5b13&color=fff&rounded=true&size=24`} alt={child.name} className="rounded-full w-6 h-6 object-cover" />
+                    <img src={child.avatarUrl || `https://ui-avatars.com/api/?name=${child.name}&background=${(child.gender && (child.gender.toLowerCase() === 'male' || child.gender.toLowerCase() === 'boy')) ? 'C4D9FF' : (child.gender && (child.gender.toLowerCase() === 'female' || child.gender.toLowerCase() === 'girl')) ? 'F5AFAF' : 'ec5b13'}&color=fff&rounded=true&size=24`} alt={child.name} className="rounded-full w-6 h-6 object-cover" />
                     <span>{child.name}</span>
                   </div>
                 </button>
@@ -195,7 +195,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, activeChild, childProfiles, setActi
                   }}
                 >
                   <div className="flex items-center gap-2 w-full text-left">
-                    <img src={child.avatarUrl || `https://ui-avatars.com/api/?name=${child.name}&background=ec5b13&color=fff&rounded=true&size=24`} alt={child.name} className="rounded-full w-6 h-6 object-cover" />
+                    <img src={child.avatarUrl || `https://ui-avatars.com/api/?name=${child.name}&background=${(child.gender && (child.gender.toLowerCase() === 'male' || child.gender.toLowerCase() === 'boy')) ? 'C4D9FF' : (child.gender && (child.gender.toLowerCase() === 'female' || child.gender.toLowerCase() === 'girl')) ? 'F5AFAF' : 'ec5b13'}&color=fff&rounded=true&size=24`} alt={child.name} className="rounded-full w-6 h-6 object-cover" />
                     <span>{child.name}</span>
                   </div>
                 </button>

@@ -6,7 +6,7 @@
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(236, 91, 19, 0.08);
+    border-bottom: 1px solid rgba(var(--theme-primary-rgb), );
     font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
     width: 100%;
 }
@@ -54,7 +54,7 @@
 }
 
 .header-title-highlight {
-    color: #ec5b13;
+    color: var(--theme-primary);
 }
 
 /* ===== Profile Selector (Center) ===== */
@@ -271,7 +271,7 @@
 }
 
 .nav-item.active {
-    color: #ec5b13;
+    color: var(--theme-primary);
     font-weight: 600;
 }
 
@@ -282,7 +282,7 @@
     left: 0;
     width: 100%;
     height: 2.5px;
-    background-color: #ec5b13;
+    background-color: var(--theme-primary);
     border-radius: 2px 2px 0 0;
 }
 
@@ -359,9 +359,9 @@
 }
 
 .mobile-nav-item.active {
-    color: #ec5b13;
+    color: var(--theme-primary);
     font-weight: 700;
-    background: rgba(236, 91, 19, 0.06);
+    background: rgba(var(--theme-primary-rgb), );
 }
 
 /* ===== Profile Dropdown Menu ===== */
