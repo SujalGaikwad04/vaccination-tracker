@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './VaccineTracker.css';
+import { generateVaccineSchedule, calculateMilestones } from '../utils/vaccinationData';
 
 const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
     const [activeFilter, setActiveFilter] = useState('all');
@@ -70,7 +71,7 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
         },
     ];
 
-    const milestones = [
+    const milestones = childData.dob && activeChild.dob ? calculateMilestones(activeChild.dob) : [
         { age: '6 Months', label: 'Sitting Unassisted', type: 'completed', icon: 'check' },
         { age: '12 Months', label: 'First Steps Taken', type: 'completed', icon: 'check' },
         { age: 'Current (18m)', label: 'Vocabulary Growth', type: 'current', icon: 'child_care' },
@@ -155,6 +156,62 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
             }
         } catch (err) {
             console.error('Error marking vaccine as done:', err);
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const handleUndoMarkDone = async (vaccineId, vaccineName) => {
+        if (!activeChild || !vaccineId) return;
+
+        setProcessingId(vaccineId);
+        try {
+            const token = localStorage.getItem('token');
+            let targetStatus = 'upcoming';
+            let targetDueDate = null;
+
+            if (activeChild.dob) {
+                const originalSchedule = generateVaccineSchedule(activeChild.dob);
+                const originalVaccine = originalSchedule.find(v => v.name === vaccineName);
+                if (originalVaccine) {
+                    targetStatus = originalVaccine.status;
+                    targetDueDate = originalVaccine.dueDate;
+                }
+            }
+
+            const response = await fetch(`http://localhost:5000/api/vaccines/${vaccineId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status: targetStatus, dueDate: targetDueDate })
+            });
+
+            if (response.ok) {
+                if (childProfiles && setChildProfiles) {
+                    const updatedProfiles = childProfiles.map(child => {
+                        if (child.id === activeChild.id) {
+                            const updatedVaccines = child.vaccines.map(vac =>
+                                vac.id === vaccineId
+                                    ? { ...vac, status: targetStatus, dueDate: targetDueDate || vac.dueDate }
+                                    : vac
+                            );
+
+                            const completed = updatedVaccines.filter(v => v.status === 'done').length;
+                            const progress = updatedVaccines.length > 0 ? Math.round((completed / updatedVaccines.length) * 100) : 0;
+
+                            return { ...child, vaccines: updatedVaccines, completed, progress };
+                        }
+                        return child;
+                    });
+                    setChildProfiles(updatedProfiles);
+                }
+            } else {
+                console.error('Failed to undo vaccine status');
+            }
+        } catch (err) {
+            console.error('Error undoing vaccine status:', err);
         } finally {
             setProcessingId(null);
         }
@@ -328,10 +385,21 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
                                                         </button>
                                                     )}
                                                     {v.action === 'view-details' && (
-                                                        <button className="vt-btn-view">
-                                                            View Details
-                                                            <span className="material-symbols-outlined">chevron_right</span>
-                                                        </button>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            <button className="vt-btn-view">
+                                                                View Details
+                                                                <span className="material-symbols-outlined">chevron_right</span>
+                                                            </button>
+                                                            <button
+                                                                className="vt-btn-undo"
+                                                                onClick={() => handleUndoMarkDone(v.id, v.name)}
+                                                                disabled={processingId === v.id}
+                                                                title="Undo Mark Done"
+                                                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex' }}
+                                                            >
+                                                                <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '20px' }}>undo</span>
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </td>
                                             </tr>

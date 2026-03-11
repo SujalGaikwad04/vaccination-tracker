@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { generateVaccineSchedule } from '../utils/vaccinationData';
 
 const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiveChildIndex }) => {
     const children = childProfiles || [];
     const [showAddModal, setShowAddModal] = useState(false);
+    const navigate = useNavigate();
 
     const handleAddChild = async (e) => {
         e.preventDefault();
@@ -99,6 +101,37 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
             }
         }
     };
+
+    let nextDueVaccine = null;
+    let missedAlerts = [];
+    let upcomingAlerts = [];
+
+    if (activeChild && activeChild.vaccines) {
+        const sortedVaccines = [...activeChild.vaccines].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+        nextDueVaccine = sortedVaccines.find(v => v.status === 'upcoming' || v.status === 'due');
+
+        missedAlerts = sortedVaccines.filter(v => v.status === 'missed').map(v => ({
+            type: 'missed',
+            title: `${v.name} was missed`,
+            time: `Due on ${new Date(v.dueDate).toLocaleDateString()}`
+        }));
+
+        upcomingAlerts = sortedVaccines.filter(v => v.status === 'due' || v.status === 'upcoming')
+            .filter(v => {
+                const due = new Date(v.dueDate);
+                const today = new Date();
+                const diffTime = due - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays >= 0 && diffDays <= 14;
+            })
+            .map(v => ({
+                type: 'upcoming',
+                title: `${v.name} due in ${Math.ceil((new Date(v.dueDate) - new Date()) / (1000 * 60 * 60 * 24))} days`,
+                time: `Due on ${new Date(v.dueDate).toLocaleDateString()}`
+            }));
+    }
+
+    const allAlerts = [...missedAlerts, ...upcomingAlerts].slice(0, 3);
 
     return (
         <div className="dashboard-container relative min-h-screen text-slate-900 dark:text-slate-100">
@@ -198,16 +231,23 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
                                 <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-6 border border-primary/20 flex flex-col justify-between">
                                     <div><div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold mb-3">
                                         <span className="size-1.5 rounded-full bg-primary animate-pulse"></span>
-                                        FOR AARAV
+                                        FOR {activeChild.name.toUpperCase()}
                                     </div>
                                         <div className="flex items-center gap-2 text-primary mb-2">
                                             <span className="material-symbols-outlined">event_upcoming</span>
                                             <span className="text-xs font-bold uppercase tracking-wider">Upcoming Milestone</span>
                                         </div>
-                                        <h4 className="text-xl font-bold text-slate-900 dark:text-white">DTP Booster</h4>
-                                        <p className="text-slate-600 dark:text-slate-400 mt-1">Due Date: <span className="font-semibold">12 Aug 2026</span></p>
+                                        <h4 className="text-xl font-bold text-slate-900 dark:text-white">
+                                            {nextDueVaccine ? nextDueVaccine.name : 'All caught up!'}
+                                        </h4>
+                                        <p className="text-slate-600 dark:text-slate-400 mt-1">Due Date: <span className="font-semibold">
+                                            {nextDueVaccine ? new Date(nextDueVaccine.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                                        </span></p>
                                     </div>
-                                    <button className="mt-6 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-primary/20">
+                                    <button
+                                        onClick={() => navigate('/vaccine-tracker')}
+                                        className="mt-6 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-primary/20"
+                                    >
                                         View Details
                                     </button>
                                 </div>
@@ -217,15 +257,15 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
                                         <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform font-bold">add_circle</span>
                                         <span className="text-xs font-bold text-primary">Add New Baby</span>
                                     </button>
-                                    <button className="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-primary transition-colors group">
+                                    <button onClick={() => navigate('/vaccine-tracker')} className="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-primary transition-colors group">
                                         <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">timeline</span>
                                         <span className="text-xs font-bold">Timeline</span>
                                     </button>
-                                    <button className="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-primary transition-colors group">
+                                    <button onClick={() => navigate('/digital-card')} className="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-primary transition-colors group">
                                         <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">badge</span>
                                         <span className="text-xs font-bold">Digital Card</span>
                                     </button>
-                                    <button className="flex flex-col items-center justify-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-2xl hover:bg-red-100 transition-colors group">
+                                    <button onClick={() => navigate('/profile')} className="flex flex-col items-center justify-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-2xl hover:bg-red-100 transition-colors group">
                                         <span className="material-symbols-outlined text-red-500 group-hover:scale-110 transition-transform">emergency_home</span>
                                         <span className="text-xs font-bold text-red-600">Emergency</span>
                                     </button>
@@ -235,7 +275,7 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
                             <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
                                     <h3 className="font-bold text-lg">Vaccination Timeline</h3>
-                                    <a className="text-primary text-sm font-semibold hover:underline" href="#">Full Schedule</a>
+                                    <button onClick={() => navigate('/vaccine-tracker')} className="text-primary text-sm font-semibold hover:underline">Full Schedule</button>
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left">
@@ -281,33 +321,29 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
                             <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
                                 <div className="flex items-center justify-between mb-4"><h3 className="font-bold text-lg">Recent Alerts</h3><button className="text-[10px] font-bold text-primary hover:underline">Manage Children</button></div>
                                 <div className="space-y-4">
-                                    <div className="flex gap-4">
-                                        <div className="size-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                                            <span className="material-symbols-outlined text-amber-600 text-sm">notifications_active</span>
+                                    {allAlerts.length > 0 ? allAlerts.map((alert, idx) => (
+                                        <div className="flex gap-4" key={idx}>
+                                            <div className={`size-8 rounded-full flex items-center justify-center shrink-0 ${alert.type === 'missed' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-amber-100 dark:bg-amber-900/30'}`}>
+                                                <span className={`material-symbols-outlined text-sm ${alert.type === 'missed' ? 'text-red-600' : 'text-amber-600'}`}>
+                                                    {alert.type === 'missed' ? 'warning' : 'notifications_active'}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold">{alert.title}</p>
+                                                <p className="text-[10px] text-slate-400">{alert.time}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-semibold">Booster due in 5 days</p>
-                                            <p className="text-[10px] text-slate-400">2 hours ago</p>
+                                    )) : (
+                                        <div className="flex gap-4">
+                                            <div className="size-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+                                                <span className="material-symbols-outlined text-green-600 text-sm">check_circle</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold">All caught up!</p>
+                                                <p className="text-[10px] text-slate-400">No pending alerts</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="size-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                                            <span className="material-symbols-outlined text-green-600 text-sm">check_circle</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold">Hep B record verified</p>
-                                            <p className="text-[10px] text-slate-400">Yesterday</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                            <span className="material-symbols-outlined text-primary text-sm">lightbulb</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold">New flu season guide</p>
-                                            <p className="text-[10px] text-slate-400">2 days ago</p>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             </section>
                             {/* Milestones */}

@@ -296,3 +296,80 @@ export const generateVaccineSchedule = (dobString) => {
         };
     });
 };
+
+export const STANDARD_MILESTONES = [
+    { months: 2, label: 'Smiles at people', icon: 'sentiment_satisfied' },
+    { months: 4, label: 'Coos & babbles', icon: 'record_voice_over' },
+    { months: 6, label: 'Sitting Unassisted', icon: 'chair' },
+    { months: 9, label: 'Crawling', icon: 'directions_walk' },
+    { months: 12, label: 'First Steps Taken', icon: 'footprint' },
+    { months: 18, label: 'Vocabulary Growth', icon: 'child_care' },
+    { months: 24, label: 'Potty Training Ready', icon: 'bathroom' },
+    { months: 36, label: 'Rides a tricycle', icon: 'pedal_bike' },
+];
+
+export const calculateMilestones = (dobString) => {
+    if (!dobString) return [];
+
+    const dob = new Date(dobString);
+    if (isNaN(dob.getTime())) return [];
+
+    const today = new Date();
+    // Calculate difference in months safely
+    let ageInMonths = (today.getFullYear() - dob.getFullYear()) * 12;
+    ageInMonths -= dob.getMonth();
+    ageInMonths += today.getMonth();
+    // Adjust if day of month hasn't occurred yet
+    if (today.getDate() < dob.getDate()) {
+        ageInMonths--;
+    }
+
+    // Pick the 4 most relevant milestones
+    // Filter to find the current/next milestone, then grab context around it
+    let currentIdx = STANDARD_MILESTONES.findIndex(m => m.months >= ageInMonths);
+    if (currentIdx === -1) {
+        currentIdx = STANDARD_MILESTONES.length - 1; // maxed out
+    }
+
+    // Grab a sliding window of 4 items around the current developmental stage
+    let startIdx = Math.max(0, currentIdx - 2);
+    if (startIdx + 4 > STANDARD_MILESTONES.length) {
+        startIdx = Math.max(0, STANDARD_MILESTONES.length - 4);
+    }
+
+    const relevantMilestones = STANDARD_MILESTONES.slice(startIdx, startIdx + 4);
+
+    return relevantMilestones.map((m) => {
+        let type = 'future';
+        let ageLabel = `${m.months} Months`;
+
+        if (ageInMonths >= m.months) {
+            type = 'completed';
+            if (ageInMonths === m.months || (ageInMonths > m.months && Math.abs(ageInMonths - m.months) <= 1 && m === relevantMilestones[relevantMilestones.length - 1])) {
+                // Approximate "current" if it just happened or is the highest one they crossed
+                type = 'current';
+            }
+        }
+
+        // Find the absolute closest to the current age to be strictly 'current'
+        const closestMilestone = relevantMilestones.reduce((prev, curr) => {
+            return (Math.abs(curr.months - ageInMonths) < Math.abs(prev.months - ageInMonths) ? curr : prev);
+        });
+
+        if (m.months === closestMilestone.months) {
+            type = 'current';
+            ageLabel = `Current (~${m.months}m)`;
+        } else if (m.months < ageInMonths) {
+            type = 'completed';
+        } else {
+            type = 'future';
+        }
+
+        return {
+            age: ageLabel,
+            label: m.label,
+            type: type,
+            icon: m.icon || 'star'
+        };
+    });
+};
