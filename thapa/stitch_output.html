@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VaxiCare - Premium Vaccination Tracking</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                        "navy-accent": "#1a2b3c",
+                        "soft-blue": "#e1f0f7"
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(236, 91, 19, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased">
+<!-- Top Navigation Header -->
+<header class="sticky top-0 z-50 glass-effect">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-20">
+<!-- Logo & Branding -->
+<div class="flex items-center gap-2">
+<div class="bg-primary/10 p-2 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">child_care</span>
+<span class="material-symbols-outlined text-primary text-sm absolute translate-x-4 -translate-y-3 bg-white rounded-full">verified</span>
+</div>
+<span class="text-2xl font-extrabold tracking-tight text-navy-accent dark:text-slate-100">Vaxi<span class="text-primary">Care</span></span>
+</div>
+<!-- Center: Child Selector -->
+<div class="hidden md:flex items-center">
+<button class="group flex items-center gap-3 bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-full transition-all duration-300 shadow-sm">
+<div class="size-8 rounded-full overflow-hidden border-2 border-primary/20">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a smiling baby" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJPGYQYTNVzVliN4t2tO8LjX0EvQXv5XVCO8k-i4thiz2dI4Bm541Cc35a09EuaztjfplgGETfsoPw03bFxsWjV3ObwFQNo4yydbEQPANci5OXIMmeWW7xg4QZPkWMkokvW0vPy9Mcu6SgGMEgxww-_0L2FZYYpV0LmdpqSKkq8ScMstr2UgtPQ5pEsTUb2vg4x6Y0rssiXPf4cO6ISFoPYd2P23LTMooeE_XgP4S9liTUnIc2DWMGjJiLMUo--wRhBLfiBcSkBPQ"/>
+</div>
+<div class="flex flex-col items-start leading-tight">
+<span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">Active Profile</span>
+<span class="text-sm font-semibold text-navy-accent dark:text-slate-200">Child: Aarav</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">expand_more</span>
+</button>
+</div>
+<!-- Right: Notifications & User -->
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-slate-500 hover:text-primary transition-colors bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1"></div>
+<button class="flex items-center gap-2 p-1 pr-3 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<img class="size-9 rounded-full object-cover" data-alt="Profile picture of parent or guardian" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhrgHkk4ReWg8tP8FX8mwEAZNdFHejpfH3g01USUj1Nflc8PY-1a6Uz08lROuVoyBEKt4m3LYVSiVq4HkZbK6sJCy4iCDv3o-h50bTpCSIQ5IVEG7lR2-kBBtrWeW-kFiDpv50XSpzq6hMzJm5XDYqYfDuMb1LBhLZVrOU-gEXILp96L_K2QqAVryempmZvcMk2H6VPiLRf6sHqQD0VLLsF5NJSPC7RFsFfalkgRSvhu2gCm_bqL4lWWC_rbA9_UOssQYJ9h47Z2k"/>
+<span class="material-symbols-outlined text-slate-400 text-sm">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Sub-header/Navigation Tabs -->
+<nav class="border-t border-slate-100 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex gap-8 overflow-x-auto no-scrollbar">
+<a class="relative py-4 text-sm font-semibold text-primary" href="#">
+                        Dashboard
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full"></span>
+</a>
+<a class="py-4 text-sm font-medium text-slate-500 hover:text-navy-accent dark:text-slate-400 dark:hover:text-slate-100 transition-colors whitespace-nowrap" href="#">
+                        Vaccine Tracker
+                    </a>
+<a class="py-4 text-sm font-medium text-slate-500 hover:text-navy-accent dark:text-slate-400 dark:hover:text-slate-100 transition-colors whitespace-nowrap" href="#">
+                        Digital Card
+                    </a>
+<a class="py-4 text-sm font-medium text-slate-500 hover:text-navy-accent dark:text-slate-400 dark:hover:text-slate-100 transition-colors whitespace-nowrap" href="#">
+                        Awareness
+                    </a>
+<a class="py-4 text-sm font-medium text-slate-500 hover:text-navy-accent dark:text-slate-400 dark:hover:text-slate-100 transition-colors whitespace-nowrap" href="#">
+                        Profile
+                    </a>
+</div>
+</div>
+</nav>
+</header>
+<!-- Main Content Area -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<!-- Hero Section / Welcome -->
+<div class="mb-10">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<h1 class="text-3xl font-extrabold text-navy-accent dark:text-slate-100 tracking-tight">Welcome back, Aarav's Parents</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-1 font-medium">Your vaccination schedule is up to date. Trustworthy care for your little one.</p>
+</div>
+<button class="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm">badge</span>
+                    View Digital Card
+                </button>
+</div>
+</div>
+<!-- Dashboard Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Stat Card 1 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+<span class="material-symbols-outlined text-green-600 dark:text-green-400">task_alt</span>
+</div>
+<span class="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">+100%</span>
+</div>
+<div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Completed</p>
+<h3 class="text-4xl font-black text-navy-accent dark:text-slate-100">8</h3>
+</div>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-400">event_upcoming</span>
+</div>
+<span class="text-xs font-bold text-slate-400 bg-slate-50 dark:bg-slate-900/30 px-2 py-1 rounded-full">Next: 2wks</span>
+</div>
+<div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Upcoming</p>
+<h3 class="text-4xl font-black text-navy-accent dark:text-slate-100">2</h3>
+</div>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+<span class="material-symbols-outlined text-blue-600 dark:text-blue-400">vaccines</span>
+</div>
+<span class="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full">Total</span>
+</div>
+<div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Total Vaccines</p>
+<h3 class="text-4xl font-black text-navy-accent dark:text-slate-100">10</h3>
+</div>
+</div>
+</div>
+<!-- Map/Location Visualization Component -->
+<div class="mt-8 rounded-3xl overflow-hidden relative h-[400px] border border-slate-200 dark:border-slate-700 shadow-xl">
+<div class="absolute inset-0 bg-slate-200 dark:bg-slate-800">
+<img class="w-full h-full object-cover opacity-60 dark:opacity-40 grayscale" data-alt="City map with clinic locations marked" data-location="New Delhi" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT1okD900M2F1r1pafRjc0SmuYktFPjmq700mbS4vX0rdOB43ZnhH1jEiWW_AO82eKihns0dLevdGSKW713yd1iyp0gdibulJG6iC4SxNAMBk_6oJRoBWNWyQUiYvktgHuBppvM1KLv-exhOQx54cNxfxKWexadJO-NU2kbGLwNUH1-sjz0qz3ANRVL0feiAcvxLaMjVyIEJgmeGH9nXUY8EYE9KW6-Qp6GrHqeCviRcgVjKHn8_mi2OXznLJ03oiWPAbTow13nNI"/>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-navy-accent/80 via-transparent to-transparent"></div>
+<div class="absolute bottom-8 left-8 right-8">
+<div class="glass-effect dark:bg-slate-900/80 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4">
+<div>
+<h4 class="text-navy-accent dark:text-white font-bold text-lg">Nearby Vaccination Centers</h4>
+<p class="text-slate-600 dark:text-slate-400 text-sm">3 clinics within 5km from your current location</p>
+</div>
+<button class="bg-navy-accent text-white px-6 py-2 rounded-xl text-sm font-bold">Find on Map</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

@@ -1,0 +1,595 @@
+/* ===== Awareness Hub Page ===== */
+.awareness-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 3rem;
+}
+
+/* Breadcrumb */
+.awareness-breadcrumb {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+}
+
+.awareness-breadcrumb a {
+    color: #94a3b8;
+    text-decoration: none;
+}
+
+.awareness-breadcrumb a:hover {
+    color: #2563eb;
+}
+
+.awareness-breadcrumb span {
+    color: #2563eb;
+    font-weight: 600;
+}
+
+/* Page Header */
+.awareness-header {
+    margin-bottom: 2rem;
+}
+
+.awareness-header h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 0.4rem 0;
+}
+
+.awareness-header p {
+    font-size: 0.92rem;
+    color: #64748b;
+    margin: 0;
+    max-width: 600px;
+}
+
+/* Search Bar */
+.awareness-search-container {
+    margin-bottom: 1.5rem;
+}
+
+.awareness-search {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.7rem 1.2rem;
+    max-width: 600px;
+    margin: 0 auto 1rem;
+    transition: border-color 0.2s;
+}
+
+.awareness-search:focus-within {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.awareness-search svg {
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+.awareness-search input {
+    border: none;
+    outline: none;
+    font-size: 0.88rem;
+    color: #1e293b;
+    width: 100%;
+    background: transparent;
+}
+
+.awareness-search input::placeholder {
+    color: #94a3b8;
+}
+
+/* Filter Tags */
+.awareness-filters {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.filter-tag {
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-tag:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.filter-tag.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+/* ===== Featured Articles Section ===== */
+.awareness-content {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.featured-section h2 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.featured-section h2::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: #2563eb;
+    border-radius: 4px;
+}
+
+/* Article Cards */
+.articles-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.article-card {
+    display: flex;
+    gap: 1.25rem;
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.article-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+
+.article-image {
+    width: 220px;
+    height: 160px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.article-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.article-content {
+    padding: 1rem 1rem 1rem 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.article-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.badge-guide {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.badge-science {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.badge-alert {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.article-content h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.article-content p {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.read-more-link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+}
+
+.read-more-link:hover {
+    color: #1d4ed8;
+}
+
+/* ===== Sidebar ===== */
+.awareness-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Did You Know Card */
+.did-you-know-card {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid #fed7aa;
+    border-radius: 14px;
+    padding: 1.25rem;
+}
+
+.dyk-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.dyk-icon {
+    width: 32px;
+    height: 32px;
+    background: #ea580c;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.dyk-header h3 {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #c2410c;
+    margin: 0;
+}
+
+.did-you-know-card blockquote {
+    font-size: 0.85rem;
+    color: #9a3412;
+    font-style: italic;
+    margin: 0 0 0.6rem 0;
+    line-height: 1.5;
+    border-left: 3px solid #f97316;
+    padding-left: 0.75rem;
+}
+
+.dyk-source {
+    font-size: 0.72rem;
+    color: #c2410c;
+    font-weight: 600;
+}
+
+.dyk-source a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+/* Medical Glossary */
+.glossary-card {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 1.25rem;
+}
+
+.glossary-card h3 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 0.8rem 0;
+}
+
+.glossary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.glossary-item {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 0.65rem;
+}
+
+.glossary-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.glossary-term {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #2563eb;
+    margin-bottom: 0.15rem;
+}
+
+.glossary-def {
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.view-all-glossary {
+    display: inline-block;
+    margin-top: 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.view-all-glossary:hover {
+    color: #1d4ed8;
+}
+
+/* ===== Tips by Age Section ===== */
+.age-tips-section {
+    margin-bottom: 2.5rem;
+}
+
+.age-tips-section h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #1e293b;
+    text-align: center;
+    margin: 0 0 1.25rem 0;
+}
+
+.age-tips-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.age-tip-card {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 1.25rem;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.age-tip-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+.age-tip-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    margin-bottom: 0.6rem;
+}
+
+.age-tip-icon.yellow {
+    background: #fef9c3;
+}
+
+.age-tip-icon.green {
+    background: #dcfce7;
+}
+
+.age-tip-icon.orange {
+    background: #ffedd5;
+}
+
+.age-tip-icon.red {
+    background: #fee2e2;
+}
+
+.age-tip-card h4 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.3rem 0;
+}
+
+.age-tip-card p {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.45;
+}
+
+/* ===== AI Assistant Banner ===== */
+.ai-assistant-banner {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #eff6ff 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 18px;
+    padding: 2.5rem;
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.ai-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+.ai-assistant-banner h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 0.4rem 0;
+}
+
+.ai-assistant-banner>p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0 0 1.25rem 0;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.faq-pills {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.faq-pill {
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: 1px solid #bfdbfe;
+    background: white;
+    font-size: 0.78rem;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.faq-pill:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+.start-chat-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 2rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.start-chat-btn:hover {
+    background: #1d4ed8;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+    transform: translateY(-1px);
+}
+
+/* ===== Footer ===== */
+.awareness-footer {
+    text-align: center;
+    padding: 2rem 0 0;
+    border-top: 1px solid #f1f5f9;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 0.6rem;
+}
+
+.footer-links {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 0.6rem;
+}
+
+.footer-links a {
+    font-size: 0.78rem;
+    color: #64748b;
+    text-decoration: none;
+}
+
+.footer-links a:hover {
+    color: #2563eb;
+}
+
+.footer-copyright {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+    .awareness-content {
+        grid-template-columns: 1fr;
+    }
+
+    .age-tips-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .awareness-page {
+        padding: 1rem;
+    }
+
+    .article-card {
+        flex-direction: column;
+    }
+
+    .article-image {
+        width: 100%;
+        height: 180px;
+    }
+
+    .age-tips-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .faq-pills {
+        flex-direction: column;
+        align-items: center;
+    }
+}

@@ -1,0 +1,32 @@
+/* App level styles */
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Page content area */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.page-container h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1a2b3c;
+  margin: 0 0 0.5rem 0;
+}
+
+.page-container p {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Header brand link reset */
+a.header-brand {
+  text-decoration: none;
+  color: inherit;
+}
