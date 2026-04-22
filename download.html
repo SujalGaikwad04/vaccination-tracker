@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VaxiCare Dashboard - Modern Healthcare</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
+<!-- Logo & Brand -->
+<div class="flex items-center gap-3">
+<div class="size-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">child_care</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Vaxi<span class="text-primary">Care</span></h1>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-primary font-semibold text-sm border-b-2 border-primary pb-5 mt-5" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium text-sm hover:text-primary transition-colors" href="#">Vaccine Tracker</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium text-sm hover:text-primary transition-colors" href="#">Digital Card</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium text-sm hover:text-primary transition-colors" href="#">Awareness</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium text-sm hover:text-primary transition-colors" href="#">Profile</a>
+</nav>
+<!-- Right Actions & Selector -->
+<div class="flex items-center gap-4">
+<!-- Child Selector -->
+<div class="hidden lg:flex items-center gap-3 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700"><div class="flex -space-x-2 mr-1"><div class="size-7 rounded-full border-2 border-white dark:border-slate-800 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCP0Xhy-_Q0NaNUn8tcmNZhrToL6RBROrWtddgx-zetFKwK7oNGB42fd40OwW2ULI4IXJZ8ZLUeSUC7Xx4stiWsp-wCiSe9JWP9z-kQVZCHJdq5h8qD4a1JO3waQP2BoGr-mBC6vmnNNYq_-yFqVxQME3zMBTFOf7fkdXwGXguze1PQ4IXiakupNrKDTZbHrqpUrJrIF7sh1vqFC40deIkRLqCy1ZwbQenirwIByTk9xsf_r6n3oMlVWu2rhHXUCRhk7MdxqLc9W9M')"></div><div class="size-7 rounded-full border-2 border-white dark:border-slate-800 bg-slate-300 flex items-center justify-center text-[10px] font-bold">B</div></div><div class="flex flex-col leading-none"><span class="text-xs font-bold">Aarav &amp; Bath</span><span class="text-[10px] text-slate-500">2 Children</span></div><span class="material-symbols-outlined text-sm text-slate-400">expand_more</span></div>
+<button class="relative p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-primary/20">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="Portrait of a young mother smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoYRLPj4iOY9IVWnD4mO3MkV6e5lLuCN2NNW7PMnAe_nuFYvff3bN7l4FQeP1qsTL9-owFIZvtPYQOpgcTjnESuXZFnGlq6ywulw_xdbibpHAIdz48-AzTzoYvGSNS7td-oajShHYmAJJw7Glg16Q9aK8eNHgaeeFMfMo4PV8LaSctmq9I8AmapWZV2JM4oZ2fgYUMMXLUWy2iV4vrXlf24x8jo6_pDADFImt7vfA5HCkBv-hcaACNgj1KUqADXsvrHlavluxBFCY"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-6 py-8">
+<div class="grid grid-cols-12 gap-8">
+<!-- Main Content Area (Left/Center) -->
+<div class="col-span-12 lg:col-span-9 space-y-8">
+<!-- Child Overview Hero -->
+<section class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-8 items-center">
+<div class="size-32 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Detailed portrait of Aarav the baby" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcUCOPDKRgHeWFBwPKe4iLM7c0IFXFCHoeczE2nz6P4CxT_5yTLQcLFxJxhboHdlTeLCm8zQpf6F1FwV5WwTpL0yeXm4raER_htjVwgTlbunGpNXsEp2wrVqn3NQbA8J1czrF3YMOOyogHG5SyZ54AGAGAJMy3iRHWmjLYjTMKuJa11iL4qUugvlGEblgJI3GLIU9E6RrxRk-xmhEyi0ALGucpcRD30T9gjnsWqh47XOs6hI6bhy144aMU4hRI9tf92xxCjkXyuLk"/>
+</div>
+<div class="flex-1 space-y-4 w-full">
+<div class="flex flex-wrap justify-between items-start gap-4">
+<div>
+<h2 class="text-3xl font-bold text-slate-900 dark:text-white leading-tight">Aarav</h2>
+<p class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">cake</span> 6 months old
+                                </p>
+</div>
+<div class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-lg">verified</span>
+                                Vaccine Confidence: High
+                            </div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-sm font-medium">
+<span>Overall Vaccination Progress</span>
+<span class="text-primary">70%</span>
+</div>
+<div class="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 70%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border-l-4 border-green-500 shadow-sm border border-slate-200 dark:border-slate-800">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Completed</p>
+<div class="flex items-end justify-between mt-2">
+<h3 class="text-4xl font-bold text-slate-900 dark:text-white">10</h3>
+<span class="text-green-500 flex items-center text-sm font-bold bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-sm">trending_up</span> 82%
+                            </span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border-l-4 border-amber-400 shadow-sm border border-slate-200 dark:border-slate-800">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Upcoming</p>
+<div class="flex items-end justify-between mt-2">
+<h3 class="text-4xl font-bold text-slate-900 dark:text-white">03</h3>
+<span class="text-amber-500 text-sm font-bold">This month</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border-l-4 border-red-500 shadow-sm border border-slate-200 dark:border-slate-800">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Missed</p>
+<div class="flex items-end justify-between mt-2">
+<h3 class="text-4xl font-bold text-slate-900 dark:text-white">01</h3>
+<span class="text-red-500 text-sm font-bold underline cursor-pointer">Re-schedule</span>
+</div>
+</div>
+</section>
+<!-- Next Due and Quick Actions -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Next Due -->
+<div class="bg-primary/5 dark:bg-primary/10 rounded-2xl p-6 border border-primary/20 flex flex-col justify-between">
+<div><div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold mb-3">
+<span class="size-1.5 rounded-full bg-primary animate-pulse"></span>
+    FOR AARAV
+</div>
+<div class="flex items-center gap-2 text-primary mb-2">
+<span class="material-symbols-outlined">event_upcoming</span>
+<span class="text-xs font-bold uppercase tracking-wider">Upcoming Milestone</span>
+</div>
+<h4 class="text-xl font-bold text-slate-900 dark:text-white">DTP Booster</h4>
+<p class="text-slate-600 dark:text-slate-400 mt-1">Due Date: <span class="font-semibold">12 Aug 2026</span></p>
+</div>
+<button class="mt-6 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-primary/20">
+                            View Details
+                        </button>
+</div>
+<!-- Quick Actions Grid -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex flex-col items-center justify-center gap-2 p-4 bg-primary/10 dark:bg-primary/20 border-2 border-dashed border-primary/40 rounded-2xl hover:bg-primary/20 transition-all group scale-105 ring-4 ring-primary/5">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform font-bold">add_circle</span>
+<span class="text-xs font-bold text-primary">Add New Baby</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-primary transition-colors group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">timeline</span>
+<span class="text-xs font-bold">Timeline</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-primary transition-colors group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">badge</span>
+<span class="text-xs font-bold">Digital Card</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-2xl hover:bg-red-100 transition-colors group">
+<span class="material-symbols-outlined text-red-500 group-hover:scale-110 transition-transform">emergency_home</span>
+<span class="text-xs font-bold text-red-600">Emergency</span>
+</button>
+</div>
+</div>
+<!-- Timeline Table -->
+<section class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<h3 class="font-bold text-lg">Vaccination Timeline</h3>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">Full Schedule</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">
+<tr>
+<th class="px-6 py-4">Vaccine Name</th>
+<th class="px-6 py-4">Dose</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4">Date</th>
+<th class="px-6 py-4 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+<td class="px-6 py-4 font-semibold">Hepatitis B</td>
+<td class="px-6 py-4 text-sm text-slate-500">Dose 3</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Completed</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">Jan 15, 2024</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">receipt_long</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+<td class="px-6 py-4 font-semibold">Rotavirus</td>
+<td class="px-6 py-4 text-sm text-slate-500">Dose 2</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">Missed</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">Feb 10, 2024</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary font-bold text-xs">Reschedule</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+<td class="px-6 py-4 font-semibold">Influenza</td>
+<td class="px-6 py-4 text-sm text-slate-500">Annual</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">Upcoming</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">Aug 12, 2024</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- Sidebar (Right) -->
+<aside class="col-span-12 lg:col-span-3 space-y-8">
+<!-- Recent Alerts -->
+<section class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-4"><h3 class="font-bold text-lg">Recent Alerts</h3><button class="text-[10px] font-bold text-primary hover:underline">Manage Children</button></div>
+<div class="space-y-4">
+<div class="flex gap-4">
+<div class="size-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-amber-600 text-sm">notifications_active</span>
+</div>
+<div>
+<p class="text-sm font-semibold">Booster due in 5 days</p>
+<p class="text-[10px] text-slate-400">2 hours ago</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="size-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>
+</div>
+<div>
+<p class="text-sm font-semibold">Hep B record verified</p>
+<p class="text-[10px] text-slate-400">Yesterday</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-sm">lightbulb</span>
+</div>
+<div>
+<p class="text-sm font-semibold">New flu season guide</p>
+<p class="text-[10px] text-slate-400">2 days ago</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Milestones -->
+<section class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+<h3 class="font-bold text-lg mb-4">Milestones</h3>
+<div class="flex flex-wrap gap-3">
+<div class="bg-primary/10 text-primary px-3 py-2 rounded-xl flex flex-col items-center justify-center text-center gap-1 w-[calc(50%-0.375rem)]">
+<span class="material-symbols-outlined">stars</span>
+<span class="text-[10px] font-bold">First Shot</span>
+</div>
+<div class="bg-primary/10 text-primary px-3 py-2 rounded-xl flex flex-col items-center justify-center text-center gap-1 w-[calc(50%-0.375rem)]">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="text-[10px] font-bold">On Track</span>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800 text-slate-400 px-3 py-2 rounded-xl flex flex-col items-center justify-center text-center gap-1 w-[calc(50%-0.375rem)] border border-dashed border-slate-300">
+<span class="material-symbols-outlined">workspace_premium</span>
+<span class="text-[10px] font-bold">Super Guard</span>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800 text-slate-400 px-3 py-2 rounded-xl flex flex-col items-center justify-center text-center gap-1 w-[calc(50%-0.375rem)] border border-dashed border-slate-300">
+<span class="material-symbols-outlined">shield</span>
+<span class="text-[10px] font-bold">Immune Pro</span>
+</div>
+</div>
+</section>
+<!-- Educational Card -->
+<section class="bg-slate-900 text-white rounded-2xl p-6 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
+<div class="relative z-10">
+<span class="material-symbols-outlined text-primary mb-2">menu_book</span>
+<h4 class="font-bold mb-2">Did you know?</h4>
+<p class="text-xs text-slate-300 leading-relaxed mb-4">
+                            Breastfeeding provides antibodies that help protect babies from many infections, but vaccines are still essential for diseases like Polio and Measles.
+                        </p>
+<button class="text-xs font-bold text-primary flex items-center gap-1 hover:gap-2 transition-all">
+                            Learn More <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</section>
+</aside>
+</div>
+</main>
+<!-- Bottom Mobile Navigation -->
+<div class="lg:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center z-50">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[10px] font-bold">Dashboard</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">event_note</span>
+<span class="text-[10px] font-medium">Tracker</span>
+</button>
+<button class="size-12 -mt-8 bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/30 border-4 border-white dark:border-slate-900">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">contactless</span>
+<span class="text-[10px] font-medium">Digital Card</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</button>
+</div>
+</body></html>

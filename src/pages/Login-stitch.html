@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login - VaxiCare</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4799eb",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111921",
+                        "accent-success": "#4ade80",
+                        "accent-warning": "#fb923c",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .otp-input:focus {
+            border-color: #4799eb;
+            ring: 2px;
+            ring-color: rgba(71, 153, 235, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header -->
+<header class="w-full px-6 py-4 lg:px-20 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-2">
+<div class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-2xl">child_care</span>
+</div>
+<div class="flex items-center justify-center w-8 h-8 -ml-4 mt-4 rounded-full bg-white dark:bg-background-dark border-2 border-primary text-primary">
+<span class="material-symbols-outlined text-sm font-bold">shield</span>
+</div>
+<h1 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white ml-1">Vaxi<span class="text-primary">Care</span></h1>
+</div>
+</header>
+<main class="flex-grow flex items-center justify-center px-6 py-12 lg:py-20">
+<div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
+<!-- Left Column: Branding & Features -->
+<div class="hidden lg:flex flex-col space-y-8">
+<div class="space-y-4">
+<h2 class="text-5xl font-extrabold leading-tight text-slate-900 dark:text-white">
+                        Welcome to <span class="text-primary">VaxiCare</span>
+</h2>
+<p class="text-lg text-slate-600 dark:text-slate-400 max-w-md leading-relaxed">
+                        Track your child’s vaccination schedule and never miss an important vaccine with our smart reminders and digital records.
+                    </p>
+</div>
+<div class="space-y-6">
+<div class="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="p-3 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined">assignment</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white">Track Records</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Complete immunization history in one secure dashboard.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="p-3 rounded-lg bg-accent-warning/10 text-accent-warning">
+<span class="material-symbols-outlined">notifications_active</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white">Smart Reminders</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Automated alerts for upcoming doses and boosters.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="p-3 rounded-lg bg-accent-success/10 text-accent-success">
+<span class="material-symbols-outlined">share_reviews</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white">Share Digital Cards</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Easy access for school admissions and travel requirements.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Login Card -->
+<div class="w-full max-w-md mx-auto">
+<div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+<div class="p-8 space-y-6">
+<div class="text-center lg:text-left">
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Login to Your Account</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-2">Enter your mobile number to receive a one-time password.</p>
+</div>
+<!-- Mobile Number Section -->
+<div class="space-y-4">
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Mobile Number</label>
+<div class="flex gap-2">
+<div class="relative min-w-[100px]">
+<select class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-3 px-3 text-slate-900 dark:text-white focus:ring-primary focus:border-primary appearance-none">
+<option>+1 (US)</option>
+<option>+44 (UK)</option>
+<option>+91 (IN)</option>
+<option>+61 (AU)</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+</div>
+<input class="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-3 px-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-primary focus:border-primary" placeholder="000 000 0000" type="tel"/>
+</div>
+<p class="text-xs text-primary hidden italic">Please enter a valid 10-digit number</p>
+</div>
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                                Get OTP
+                            </button>
+</div>
+<!-- OTP Section (Simulated State) -->
+<div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-6 opacity-40 pointer-events-none">
+<div class="space-y-4">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300 text-center block">Enter 6-digit OTP</label>
+<div class="flex justify-between gap-2">
+<input class="otp-input w-12 h-14 text-center text-xl font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white" maxlength="1" type="text"/>
+<input class="otp-input w-12 h-14 text-center text-xl font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white" maxlength="1" type="text"/>
+<input class="otp-input w-12 h-14 text-center text-xl font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white" maxlength="1" type="text"/>
+<input class="otp-input w-12 h-14 text-center text-xl font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white" maxlength="1" type="text"/>
+<input class="otp-input w-12 h-14 text-center text-xl font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white" maxlength="1" type="text"/>
+<input class="otp-input w-12 h-14 text-center text-xl font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white" maxlength="1" type="text"/>
+</div>
+</div>
+<button class="w-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-bold py-3.5 rounded-lg cursor-not-allowed">
+                                Verify OTP
+                            </button>
+<div class="text-center">
+<p class="text-sm text-slate-500">Didn't receive code? <a class="text-primary font-semibold hover:underline" href="#">Resend in 0:59</a></p>
+</div>
+</div>
+</div>
+<div class="px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 text-center">
+<p class="text-sm text-slate-500">New to VaxiCare? <a class="text-primary font-bold hover:underline" href="#">Create an account</a></p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Features -->
+<section class="w-full bg-white dark:bg-slate-900 py-12 border-t border-slate-200 dark:border-slate-800">
+<div class="max-w-6xl mx-auto px-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="flex flex-col items-center text-center space-y-2">
+<div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-2">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<h4 class="font-bold text-slate-900 dark:text-white">Secure OTP Login</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400">Passwordless entry with encrypted one-time codes.</p>
+</div>
+<div class="flex flex-col items-center text-center space-y-2">
+<div class="w-12 h-12 rounded-full bg-accent-warning/10 text-accent-warning flex items-center justify-center mb-2">
+<span class="material-symbols-outlined">event_available</span>
+</div>
+<h4 class="font-bold text-slate-900 dark:text-white">Never Miss a Vaccine</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400">Personalized schedules based on international health standards.</p>
+</div>
+<div class="flex flex-col items-center text-center space-y-2">
+<div class="w-12 h-12 rounded-full bg-accent-success/10 text-accent-success flex items-center justify-center mb-2">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<h4 class="font-bold text-slate-900 dark:text-white">Verified Digital Records</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400">Authenticated vaccination cards ready for any use case.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Links -->
+<footer class="w-full px-6 py-8 bg-slate-50 dark:bg-background-dark border-t border-slate-200 dark:border-slate-800">
+<div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<p class="text-sm text-slate-500 dark:text-slate-400 order-2 md:order-1">
+                © 2026 VaxiCare. All rights reserved.
+            </p>
+<div class="flex flex-wrap justify-center gap-6 order-1 md:order-2">
+<a class="text-sm text-slate-500 hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-sm text-slate-500 hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-sm text-slate-500 hover:text-primary transition-colors" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+</body></html>
