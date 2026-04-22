@@ -1,0 +1,73 @@
+{
+  "children": [
+    {
+      "id": 6,
+      "user_id": 4,
+      "name": "Sujal Shekhar Gaikwad",
+      "dob": "2026-02-28T18:30:00.000Z",
+      "gender": "male",
+      "blood_group": "O+",
+      "avatar_url": "/baby-boy.png"
+    },
+    {
+      "id": 7,
+      "user_id": 4,
+      "name": "SMARTY",
+      "dob": "2026-01-31T18:30:00.000Z",
+      "gender": "female",
+      "blood_group": "O+",
+      "avatar_url": "/baby-girl.png"
+    },
+    {
+      "id": 8,
+      "user_id": 1,
+      "name": "Sujal Shekhar Gaikwad",
+      "dob": "2026-03-03T18:30:00.000Z",
+      "gender": "male",
+      "blood_group": "O+",
+      "avatar_url": "/baby-boy.png"
+    }
+  ],
+  "vaccines": [
+    {
+      "id": 131,
+      "child_id": 6,
+      "name": "BCG",
+      "dose_when": "At birth",
+      "status": "due",
+      "due_date": "2026-02-28T18:30:00.000Z"
+    },
+    {
+      "id": 132,
+      "child_id": 6,
+      "name": "OPV-0",
+      "dose_when": "At birth",
+      "status": "due",
+      "due_date": "2026-02-28T18:30:00.000Z"
+    },
+    {
+      "id": 133,
+      "child_id": 6,
+      "name": "Hep B (Birth)",
+      "dose_when": "Within 24 hrs",
+      "status": "due",
+      "due_date": "2026-02-28T18:30:00.000Z"
+    },
+    {
+      "id": 134,
+      "child_id": 6,
+      "name": "OPV-1",
+      "dose_when": "6 weeks",
+      "status": "upcoming",
+      "due_date": "2026-04-11T18:30:00.000Z"
+    },
+    {
+      "id": 135,
+      "child_id": 6,
+      "name": "Pentavalent-1",
+      "dose_when": "6 weeks",
+      "status": "upcoming",
+      "due_date": "2026-04-11T18:30:00.000Z"
+    }
+  ]
+}
