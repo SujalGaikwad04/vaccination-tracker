@@ -5,6 +5,7 @@ import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
 import cron from 'node-cron';
 import axios from 'axios';
+import bcrypt from 'bcryptjs';
 import poolPromise from './db.js';
 
 dotenv.config();
@@ -61,9 +62,17 @@ const initDb = async () => {
         mobile_number VARCHAR(20),
         age INT,
         profile_picture LONGTEXT,
+        password VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+        // Migration: Ensure password column exists (for existing tables)
+        try {
+            await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(255)');
+        } catch (e) {
+            // Column likely already exists
+        }
         await pool.query(`
       CREATE TABLE IF NOT EXISTS children (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -326,6 +335,40 @@ app.get('/api/public/child/:id', async (req, res) => {
 // Send Card via Email
 app.post('/api/send-card-email', async (req, res) => {
     // ... existing code ...
+});
+
+// Change Password Endpoint
+app.post('/api/change-password', authenticateToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const userEmail = req.user.email;
+
+    try {
+        if (!pool) pool = await poolPromise;
+
+        // 1. Get user from DB
+        const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [userEmail]);
+        if (users.length === 0) return res.status(404).json({ error: 'User not found' });
+
+        const user = users[0];
+
+        // 2. If user has a password, verify it
+        if (user.password) {
+            const isMatch = await bcrypt.compare(currentPassword, user.password);
+            if (!isMatch) return res.status(400).json({ error: 'Incorrect current password' });
+        }
+
+        // 3. Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // 4. Update DB
+        await pool.query('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, userEmail]);
+
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (err) {
+        console.error('Change Password Error:', err.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // Nearby Clinics API (Google Places Integration)

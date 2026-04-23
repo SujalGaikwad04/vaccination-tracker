@@ -11,6 +11,7 @@ import Profile from './pages/Profile'
 import Login from './pages/Login'
 import PublicView from './pages/PublicView'
 import VaccineInfo from './pages/VaccineInfo'
+import { SettingsProvider } from './context/SettingsContext'
 
 const AppContent = ({ isLoggedIn, setIsLoggedIn, childProfiles, setChildProfiles, activeChildIndex, setActiveChildIndex }) => {
   const location = useLocation();
@@ -130,16 +131,18 @@ function App() {
   }, [isLoggedIn]);
 
   return (
-    <BrowserRouter>
-      <AppContent
-        isLoggedIn={isLoggedIn}
-        setIsLoggedIn={setIsLoggedIn}
-        childProfiles={childProfiles}
-        setChildProfiles={setChildProfiles}
-        activeChildIndex={activeChildIndex}
-        setActiveChildIndex={setActiveChildIndex}
-      />
-    </BrowserRouter>
+    <SettingsProvider>
+      <BrowserRouter>
+        <AppContent
+          isLoggedIn={isLoggedIn}
+          setIsLoggedIn={setIsLoggedIn}
+          childProfiles={childProfiles}
+          setChildProfiles={setChildProfiles}
+          activeChildIndex={activeChildIndex}
+          setActiveChildIndex={setActiveChildIndex}
+        />
+      </BrowserRouter>
+    </SettingsProvider>
   )
 }
 

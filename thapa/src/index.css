@@ -1,105 +1,52 @@
 :root {
-  --theme-primary: #ec5b13;
-  --theme-primary-rgb: 236 91 19;
+  /* Default Colors (Light) */
+  --bg-color: #f8fafc;
+  --text-color: #1e293b;
+  --text-muted: #64748b;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --primary: #0ea5e9;
+  --primary-dark: #0284c7;
+  --header-bg: rgba(255, 255, 255, 0.8);
 
-  --theme-secondary: #2beeee;
-  --theme-secondary-rgb: 43 238 238;
-
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Font Scaling */
+  --base-font-size: 16px;
+  font-size: var(--base-font-size);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-:root[data-theme="boy"] {
-  --theme-primary: #C4D9FF;
-  --theme-primary-rgb: 196 217 255;
-
-  --theme-secondary: #C5BAFF;
-  --theme-secondary-rgb: 197 186 255;
-
-  --theme-bg: #FBFBFB;
+/* Dark Theme Overrides */
+:root[data-theme="dark"] {
+  --bg-color: #0f172a;
+  --text-color: #f1f5f9;
+  --text-muted: #94a3b8;
+  --card-bg: #1e293b;
+  --border-color: #334155;
+  --header-bg: rgba(15, 23, 42, 0.8);
 }
 
-:root[data-theme="girl"] {
-  --theme-primary: #F5AFAF;
-  --theme-primary-rgb: 245 175 175;
-
-  --theme-secondary: #F9DFDF;
-  --theme-secondary-rgb: 249 223 223;
-
-  --theme-bg: #FCF8F8;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
+/* Font Size Scaling */
+:root[data-font-size="small"] { --base-font-size: 14px; }
+:root[data-font-size="medium"] { --base-font-size: 16px; }
+:root[data-font-size="large"] { --base-font-size: 18px; }
 
 body {
   margin: 0;
   padding: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background-color: var(--theme-bg, #f8fafc);
-  /* light background to complement the header */
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Helper for existing glass-effect */
+.glass-effect {
+  background: var(--header-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
 }
 
-
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --theme-primary: #ec5b13;
-    --theme-primary-rgb: 236 91 19;
-
-    --theme-secondary: #2beeee;
-    --theme-secondary-rgb: 43 238 238;
-    color: #213547;
-    background-color: #ffffff;
-  }
-
-  :root[data-theme="boy"] {
-    --theme-primary: #C4D9FF;
-    --theme-primary-rgb: 196 217 255;
-
-    --theme-secondary: #C5BAFF;
-    --theme-secondary-rgb: 197 186 255;
-
-    --theme-bg: #FBFBFB;
-  }
-
-  :root[data-theme="girl"] {
-    --theme-primary: #F5AFAF;
-    --theme-primary-rgb: 245 175 175;
-
-    --theme-secondary: #F9DFDF;
-    --theme-secondary-rgb: 249 223 223;
-
-    --theme-bg: #FCF8F8;
-  }
-
-  a:hover {
-    color: #747bff;
-  }
-}
 
 .glass-effect {
   background: rgba(255, 255, 255, 0.7);

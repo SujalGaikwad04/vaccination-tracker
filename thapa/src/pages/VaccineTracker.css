@@ -63,11 +63,11 @@
 
 /* Profile Card */
 .vt-profile-card {
-    background: white;
+    background: var(--card-bg);
     padding: 1.75rem;
     border-radius: 1rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--border-color);
 }
 
 .vt-profile-top {
@@ -97,7 +97,7 @@
 .vt-profile-name {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-color);
     margin: 0;
 }
 
@@ -171,7 +171,7 @@
 .vt-profile-nav {
     margin-top: 2rem;
     padding-top: 1.5rem;
-    border-top: 1px solid #f8fafc;
+    border-top: 1px solid var(--border-color);
 }
 
 .vt-profile-nav nav {
@@ -184,15 +184,10 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 0.75rem;
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #64748b;
-    text-decoration: none;
-    transition: all 0.2s ease;
+    padding: 0.875rem 1.25rem;
+    width: 100%;
+    background: none;
     border: none;
-    background: transparent;
     cursor: pointer;
     width: 100%;
     text-align: left;
@@ -350,15 +345,16 @@
     display: block;
     font-size: 10px;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
 
 .vt-stat-value {
-    font-size: 1.25rem;
+    display: block;
+    font-size: 0.9375rem;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-color);
 }
 
 .vt-stat-value.orange {
@@ -460,8 +456,8 @@
     cursor: pointer;
     transition: all 0.2s ease;
     border: 1px solid #e2e8f0;
-    background: white;
-    color: #64748b;
+    background: var(--card-bg);
+    color: var(--text-muted);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -473,7 +469,7 @@
 
 .vt-filter-btn.active {
     background: #0f172a;
-    color: white;
+    color: var(--card-bg);
     border-color: #0f172a;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
 }
@@ -499,12 +495,11 @@
 
 /* ===== VACCINE TABLE ===== */
 .vt-table-card {
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    border: 1px solid #f1f5f9;
-    overflow: hidden;
-    min-width: 0;
+    background: var(--card-bg);
+    border-radius: 1.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
 }
 
 .vt-table-scroll {
@@ -521,14 +516,15 @@
     background: #f8fafc;
 }
 
-.vt-table thead th {
+.vt-table th {
     padding: 1rem 1.5rem;
-    font-size: 11px;
-    font-weight: 900;
-    color: #94a3b8;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    white-space: nowrap;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .vt-table thead th:last-child {
@@ -544,9 +540,10 @@
     background: rgba(248, 250, 252, 0.5);
 }
 
-.vt-table tbody td {
+.vt-table td {
     padding: 1.25rem 1.5rem;
     vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .vt-table tbody td:last-child {
@@ -555,19 +552,19 @@
 
 .vt-cell-name {
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-color);
     font-size: 0.875rem;
 }
 
 .vt-cell-dose {
     font-size: 10px;
-    color: #94a3b8;
+    color: var(--text-muted);
     margin-top: 0.15rem;
 }
 
 .vt-cell-text {
     font-size: 0.875rem;
-    color: #64748b;
+    color: var(--text-muted);
 }
 
 .vt-cell-text.medium {
@@ -623,7 +620,7 @@
 /* Action Buttons in Table */
 .vt-btn-recovery {
     background: #f43f5e;
-    color: white;
+    color: var(--card-bg);
     border: none;
     font-size: 11px;
     font-weight: 700;
@@ -641,9 +638,9 @@
 }
 
 .vt-btn-mark-done {
-    background: white;
+    background: var(--card-bg);
     border: 1px solid #e2e8f0;
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 11px;
     font-weight: 700;
     padding: 0.5rem 1rem;
@@ -660,7 +657,7 @@
 .vt-btn-view {
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: var(--text-muted);
     font-size: 11px;
     font-weight: 700;
     padding: 0.5rem 0;
@@ -695,7 +692,7 @@
 
 /* Timeline Card */
 .vt-timeline-card {
-    background: white;
+    background: var(--card-bg);
     border-radius: 1rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     border: 1px solid #f1f5f9;
@@ -713,7 +710,7 @@
 .vt-timeline-title {
     font-size: 0.875rem;
     font-weight: 900;
-    color: #0f172a;
+    color: var(--text-color);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -728,7 +725,7 @@
 .vt-timeline-hint {
     font-size: 10px;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
 }
 
@@ -765,7 +762,7 @@
     margin-bottom: 0.5rem;
     position: relative;
     z-index: 2;
-    border: 4px solid white;
+    border: 4px solid var(--card-bg);
 }
 
 .vt-step-circle.completed {
@@ -781,7 +778,7 @@
 
 .vt-step-circle.future {
     background: #f1f5f9;
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 
 .vt-step-circle .material-symbols-outlined {
@@ -814,7 +811,7 @@
 }
 
 .vt-step-age.default {
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 
 .vt-step-age.active {
@@ -833,11 +830,11 @@
 }
 
 .vt-step-text.bold {
-    color: #0f172a;
+    color: var(--text-color);
 }
 
 .vt-step-text.muted {
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 
 /* ===== TIP CARD ===== */
@@ -868,7 +865,7 @@
 .vt-tip-icon-box {
     width: 40px;
     height: 40px;
-    background: white;
+    background: var(--card-bg);
     border-radius: 0.5rem;
     display: flex;
     align-items: center;
@@ -894,13 +891,13 @@
 .vt-tip-title {
     font-size: 0.875rem;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-color);
     margin: 0 0 0.5rem 0;
 }
 
 .vt-tip-text {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--text-muted);
     line-height: 1.7;
     margin: 0 0 1rem 0;
 }
@@ -950,7 +947,7 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    border: 2px solid white;
+    border: 2px solid var(--card-bg);
     overflow: hidden;
     background: #e2e8f0;
 }
@@ -965,14 +962,14 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    border: 2px solid white;
+    border: 2px solid var(--card-bg);
     background: #14b8a6;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 8px;
     font-weight: 700;
-    color: white;
+    color: var(--card-bg);
 }
 
 .vt-tip-bg-icon {
@@ -993,7 +990,7 @@
 .vt-footer {
     margin-top: 1rem;
     border-top: 1px solid #e2e8f0;
-    background: white;
+    background: var(--card-bg);
     padding: 2.5rem 3rem;
     width: 100%;
 }
@@ -1039,7 +1036,7 @@
 .vt-footer-brand-text {
     font-size: 0.875rem;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-color);
 }
 
 .vt-footer-links {
@@ -1050,7 +1047,7 @@
 .vt-footer-links a {
     font-size: 11px;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     text-decoration: none;
@@ -1063,7 +1060,7 @@
 
 .vt-footer-copy {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--text-muted);
     margin: 0;
 }
 
@@ -1122,7 +1119,7 @@
 }
 
 .vt-modal-content {
-    background: white;
+    background: var(--card-bg);
     width: 100%;
     max-width: 500px;
     border-radius: 1rem;
@@ -1146,20 +1143,20 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
+    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .vt-modal-close:hover {
     background: #e2e8f0;
-    color: #0f172a;
+    color: var(--text-color);
 }
 
 .vt-modal-title {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--text-color);
     margin: 0 0 1.5rem 0;
 }
 
@@ -1189,8 +1186,8 @@
     border-radius: 0.5rem;
     font-size: 0.875rem;
     font-family: inherit;
-    color: #0f172a;
-    background: white;
+    color: var(--text-color);
+    background: var(--card-bg);
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -1203,7 +1200,7 @@
 
 .vt-btn-modal-submit {
     background: #0f172a;
-    color: white;
+    color: var(--card-bg);
     font-size: 1rem;
     font-weight: 700;
     padding: 1rem;
@@ -1245,7 +1242,7 @@
 .vt-vd-label {
     font-size: 0.75rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin: 0;
@@ -1253,7 +1250,7 @@
 
 .vt-vd-value {
     font-size: 0.875rem;
-    color: #0f172a;
+    color: var(--text-color);
     font-weight: 500;
     margin: 0;
 }
@@ -1270,7 +1267,7 @@
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
     background: #f1f5f9;
-    color: #0f172a;
+    color: var(--text-color);
     font-size: 0.875rem;
     font-weight: 700;
     border-radius: 0.5rem;
@@ -1364,7 +1361,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: white;
+    background: var(--card-bg);
     padding: 1.5rem 2rem;
     border-radius: 1rem;
     border: 1px solid #f1f5f9;
@@ -1372,7 +1369,7 @@
 
 .vt-btn-download-record {
     background: #ec5b13;
-    color: white;
+    color: var(--card-bg);
     border: none;
     padding: 0.75rem 1.25rem;
     border-radius: 0.75rem;
@@ -1399,7 +1396,7 @@
 }
 
 .vt-record-card {
-    background: white;
+    background: var(--card-bg);
     border-radius: 1rem;
     border: 1px solid #f1f5f9;
     padding: 1.5rem;

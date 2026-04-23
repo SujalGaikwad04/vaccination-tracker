@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSettings } from '../context/SettingsContext';
 import './Profile.css';
 
 const Profile = ({ setIsLoggedIn }) => {
@@ -11,6 +12,44 @@ const Profile = ({ setIsLoggedIn }) => {
     const [profilePicture, setProfilePicture] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' });
+
+    const { theme, setTheme, fontSize, setFontSize, isPrivate, setIsPrivate } = useSettings();
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        if (passwordData.new !== passwordData.confirm) {
+            alert("New passwords do not match!");
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    currentPassword: passwordData.current,
+                    newPassword: passwordData.new
+                })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert("Password updated successfully!");
+                setShowPasswordModal(false);
+                setPasswordData({ current: '', new: '', confirm: '' });
+            } else {
+                alert(data.error || "Failed to update password");
+            }
+        } catch (err) {
+            alert("Connection error");
+        }
+    };
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -225,15 +264,24 @@ const Profile = ({ setIsLoggedIn }) => {
                         <div>
                             <p className="form-label block mb-3">Color Theme</p>
                             <div className="theme-grid">
-                                <button className="theme-btn active">
+                                <button 
+                                    className={`theme-btn ${theme === 'light' ? 'active' : ''}`}
+                                    onClick={() => setTheme('light')}
+                                >
                                     <span className="font-icon icon">light_mode</span>
                                     <span>Light</span>
                                 </button>
-                                <button className="theme-btn">
+                                <button 
+                                    className={`theme-btn ${theme === 'dark' ? 'active' : ''}`}
+                                    onClick={() => setTheme('dark')}
+                                >
                                     <span className="font-icon icon">dark_mode</span>
                                     <span>Dark</span>
                                 </button>
-                                <button className="theme-btn">
+                                <button 
+                                    className={`theme-btn ${theme === 'auto' ? 'active' : ''}`}
+                                    onClick={() => setTheme('auto')}
+                                >
                                     <span className="font-icon icon">settings_brightness</span>
                                     <span>Auto</span>
                                 </button>
@@ -241,11 +289,19 @@ const Profile = ({ setIsLoggedIn }) => {
                         </div>
                         <div>
                             <label className="form-label block mb-3">Font Size</label>
-                            <input className="slider-input" max="24" min="12" type="range" defaultValue="16" />
-                            <div className="slider-labels">
-                                <span>Small</span>
-                                <span>Standard</span>
-                                <span>Large</span>
+                            <div className="btn-group">
+                                <button 
+                                    className={`btn-group-item ${fontSize === 'small' ? 'active' : ''}`}
+                                    onClick={() => setFontSize('small')}
+                                >Small</button>
+                                <button 
+                                    className={`btn-group-item ${fontSize === 'medium' ? 'active' : ''}`}
+                                    onClick={() => setFontSize('medium')}
+                                >Standard</button>
+                                <button 
+                                    className={`btn-group-item ${fontSize === 'large' ? 'active' : ''}`}
+                                    onClick={() => setFontSize('large')}
+                                >Large</button>
                             </div>
                         </div>
                     </div>
@@ -259,12 +315,12 @@ const Profile = ({ setIsLoggedIn }) => {
                         <h3 className="card-title">Account Security</h3>
                     </div>
                     <div className="settings-list settings-list-sm">
-                        <button className="list-btn">
+                        <button className="list-btn" onClick={() => setShowPasswordModal(true)}>
                             <div className="list-btn-content">
-                                <span className="font-icon icon">phone_iphone</span>
+                                <span className="font-icon icon">lock</span>
                                 <div className="list-btn-text">
-                                    <h4>Change Mobile Number</h4>
-                                    <p>Currently: +91 987***3210</p>
+                                    <h4>Change Account Password</h4>
+                                    <p>Update your login credentials</p>
                                 </div>
                             </div>
                             <span className="font-icon chevron">chevron_right</span>
@@ -303,6 +359,24 @@ const Profile = ({ setIsLoggedIn }) => {
                         <h3 className="card-title">Privacy & Data</h3>
                     </div>
                     <div className="settings-list settings-list-sm">
+                        <div className="list-item-highlight">
+                            <div className="list-btn-content">
+                                <span className="font-icon icon">visibility_off</span>
+                                <div className="list-btn-text">
+                                    <h4>Private Account</h4>
+                                    <p>Only you can see your data</p>
+                                </div>
+                            </div>
+                            <label className="toggle-switch">
+                                <input 
+                                    className="toggle-input" 
+                                    type="checkbox" 
+                                    checked={isPrivate}
+                                    onChange={(e) => setIsPrivate(e.target.checked)}
+                                />
+                                <div className="toggle-bg"></div>
+                            </label>
+                        </div>
                         <button className="list-btn">
                             <div className="list-btn-content">
                                 <span className="font-icon icon">download</span>
@@ -337,7 +411,7 @@ const Profile = ({ setIsLoggedIn }) => {
                             <span className="font-icon icon">help</span>
                             <span>FAQ</span>
                         </button>
-                        <button className="action-card">
+                        <button className="action-card" onClick={() => window.location.href = 'mailto:support@vaxicare.com?subject=Support Request'}>
                             <span className="font-icon icon">chat_bubble</span>
                             <span>Support</span>
                         </button>
@@ -384,6 +458,53 @@ const Profile = ({ setIsLoggedIn }) => {
                     <span>Log Out of Account</span>
                 </button>
             </div>
+            
+            {/* Change Password Modal */}
+            {showPasswordModal && (
+                <div className="vt-modal-overlay">
+                    <div className="vt-modal-content">
+                        <button className="vt-modal-close" onClick={() => setShowPasswordModal(false)}>
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+                        <h2 className="vt-modal-title">Change Password</h2>
+                        <form className="vt-modal-form" onSubmit={handleChangePassword}>
+                            <div className="form-group">
+                                <label className="form-label">Current Password</label>
+                                <input 
+                                    type="password" 
+                                    className="form-input" 
+                                    required
+                                    value={passwordData.current}
+                                    onChange={e => setPasswordData({...passwordData, current: e.target.value})}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">New Password</label>
+                                <input 
+                                    type="password" 
+                                    className="form-input" 
+                                    required
+                                    value={passwordData.new}
+                                    onChange={e => setPasswordData({...passwordData, new: e.target.value})}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Confirm New Password</label>
+                                <input 
+                                    type="password" 
+                                    className="form-input" 
+                                    required
+                                    value={passwordData.confirm}
+                                    onChange={e => setPasswordData({...passwordData, confirm: e.target.value})}
+                                />
+                            </div>
+                            <button type="submit" className="btn-primary" style={{width: '100%', marginTop: '1rem'}}>
+                                Update Password
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </main>
     );
 };
