@@ -88,7 +88,59 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
 
     const [markDoneModal, setMarkDoneModal] = useState({ show: false, vaccine: null });
     const [viewDetailsModal, setViewDetailsModal] = useState({ show: false, vaccine: null });
+    const [showClinicsModal, setShowClinicsModal] = useState(false);
+    const [clinicsData, setClinicsData] = useState({
+        list: [],
+        loading: false,
+        error: null,
+        locationFetched: false,
+        selectedClinic: null
+    });
 
+    const fetchNearbyClinics = () => {
+        if (!navigator.geolocation) {
+            setClinicsData(prev => ({ ...prev, error: 'Geolocation is not supported by your browser' }));
+            return;
+        }
+
+        setClinicsData(prev => ({ ...prev, loading: true, error: null }));
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                try {
+                    const response = await fetch(`http://localhost:5000/api/nearby-clinics?lat=${latitude}&lng=${longitude}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        // Sort by distance numerically
+                        const sortedClinics = (data.clinics || []).sort((a, b) => {
+                            return parseFloat(a.distance) - parseFloat(b.distance);
+                        });
+                        
+                        setClinicsData({
+                            list: sortedClinics,
+                            loading: false,
+                            error: null,
+                            locationFetched: true,
+                            selectedClinic: sortedClinics[0] // Default to nearest
+                        });
+                    } else {
+                        throw new Error(data.error || 'Failed to fetch clinics');
+                    }
+                } catch (err) {
+                    setClinicsData(prev => ({ ...prev, loading: false, error: err.message }));
+                }
+            },
+            (err) => {
+                let msg = 'Could not get your location';
+                if (err.code === 1) msg = 'Location permission denied. Please enable it to find nearby clinics.';
+                setClinicsData(prev => ({ ...prev, loading: false, error: msg }));
+            },
+            { timeout: 10000 }
+        );
+    };
+
+    // No hardcoded clinics anymore - only real data
     const milestones = childData.dob && activeChild.dob ? calculateMilestones(activeChild.dob) : [
         { age: '6 Months', label: 'Sitting Unassisted', type: 'completed', icon: 'check' },
         { age: '12 Months', label: 'First Steps Taken', type: 'completed', icon: 'check' },
@@ -328,13 +380,22 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
 
                     <div className="vt-resources">
                         <h4 className="vt-resources-label">Resources</h4>
-                        <div className="vt-resource-card">
+                        <div 
+                            className="vt-resource-card clickable" 
+                            onClick={() => navigate('/awareness')}
+                        >
                             <div className="vt-resource-icon blue">
                                 <span className="material-symbols-outlined">help</span>
                             </div>
                             <p className="vt-resource-text">Vaccination FAQ</p>
                         </div>
-                        <div className="vt-resource-card">
+                        <div 
+                            className="vt-resource-card clickable" 
+                            onClick={() => {
+                                setShowClinicsModal(true);
+                                if (!clinicsData.locationFetched) fetchNearbyClinics();
+                            }}
+                        >
                             <div className="vt-resource-icon teal">
                                 <span className="material-symbols-outlined">medical_services</span>
                             </div>
@@ -345,142 +406,278 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
 
                 {/* ===== MAIN CONTENT ===== */}
                 <main className="vt-main">
-                    {/* Header Card: Stats + Progress Ring */}
-                    <div className="vt-header-card">
-                        <div className="vt-header-info">
-                            <h1 className="vt-page-title">Vaccination Tracker</h1>
-                            <p className="vt-page-desc">
-                                Track {childData.name}'s immunization progress and keep up with his upcoming health milestones.
-                            </p>
-                            <div className="vt-stats-row">
-                                <div className="vt-stat-box">
-                                    <span className="vt-stat-label">Completed</span>
-                                    <span className="vt-stat-value">
-                                        {childData.completedVaccines} / {childData.totalVaccines}
-                                    </span>
+                    {activeSideNav === 'overview' ? (
+                        <>
+                            {/* Header Card: Stats + Progress Ring */}
+                            <div className="vt-header-card">
+                                <div className="vt-header-info">
+                                    <h1 className="vt-page-title">Vaccination Tracker</h1>
+                                    <p className="vt-page-desc">
+                                        Track {childData.name}'s immunization progress and keep up with his upcoming health milestones.
+                                    </p>
+                                    <div className="vt-stats-row">
+                                        <div className="vt-stat-box">
+                                            <span className="vt-stat-label">Completed</span>
+                                            <span className="vt-stat-value">
+                                                {childData.completedVaccines} / {childData.totalVaccines}
+                                            </span>
+                                        </div>
+                                        <div className="vt-stat-box">
+                                            <span className="vt-stat-label">Next Due</span>
+                                            <span className="vt-stat-value orange">{childData.nextDueDate}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="vt-stat-box">
-                                    <span className="vt-stat-label">Next Due</span>
-                                    <span className="vt-stat-value orange">{childData.nextDueDate}</span>
+
+                                <div className="vt-ring-area">
+                                    <div className="vt-ring-wrapper">
+                                        <svg viewBox="0 0 100 100">
+                                            <circle className="vt-ring-bg" cx="50" cy="50" r={radius} />
+                                            <circle
+                                                className="vt-ring-progress progress-ring__circle"
+                                                cx="50"
+                                                cy="50"
+                                                r={radius}
+                                                strokeDasharray={circumference}
+                                                strokeDashoffset={offset}
+                                            />
+                                        </svg>
+                                        <div className="vt-ring-center">
+                                            <span className="vt-ring-percent">{childData.overallProgress}%</span>
+                                        </div>
+                                    </div>
+                                    <p className="vt-ring-label">Overall Progress</p>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="vt-ring-area">
-                            <div className="vt-ring-wrapper">
-                                <svg viewBox="0 0 100 100">
-                                    <circle className="vt-ring-bg" cx="50" cy="50" r={radius} />
-                                    <circle
-                                        className="vt-ring-progress progress-ring__circle"
-                                        cx="50"
-                                        cy="50"
-                                        r={radius}
-                                        strokeDasharray={circumference}
-                                        strokeDashoffset={offset}
-                                    />
-                                </svg>
-                                <div className="vt-ring-center">
-                                    <span className="vt-ring-percent">{childData.overallProgress}%</span>
+                            {/* Filter Tabs + Table */}
+                            <div className="vt-filters-section">
+                                <div className="vt-filter-row">
+                                    {filters.map(f => (
+                                        <button
+                                            key={f.key}
+                                            className={`vt-filter-btn ${activeFilter === f.key ? 'active' : ''}`}
+                                            onClick={() => setActiveFilter(f.key)}
+                                        >
+                                            {f.dotClass && <span className={`vt-dot ${f.dotClass}`}></span>}
+                                            {f.label}
+                                        </button>
+                                    ))}
                                 </div>
-                            </div>
-                            <p className="vt-ring-label">Overall Progress</p>
-                        </div>
-                    </div>
 
-                    {/* Filter Tabs + Table */}
-                    <div className="vt-filters-section">
-                        <div className="vt-filter-row">
-                            {filters.map(f => (
-                                <button
-                                    key={f.key}
-                                    className={`vt-filter-btn ${activeFilter === f.key ? 'active' : ''}`}
-                                    onClick={() => setActiveFilter(f.key)}
-                                >
-                                    {f.dotClass && <span className={`vt-dot ${f.dotClass}`}></span>}
-                                    {f.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="vt-table-card">
-                            <div className="vt-table-scroll">
-                                <table className="vt-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Vaccine Name</th>
-                                            <th>Recommended Age</th>
-                                            <th>Due Date</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredVaccines.map((v, i) => (
-                                            <tr key={i}>
-                                                <td>
-                                                    <button
-                                                        onClick={() => navigate(`/vaccine-info/${v.name}`)}
-                                                        title="Click to learn more"
-                                                        className="group text-left"
-                                                    >
-                                                        <div className="vt-cell-name group-hover:text-[#ec5b13] transition-colors flex items-center gap-1">
-                                                            {v.name}
-                                                            <span className="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 transition-opacity text-[#ec5b13]">info</span>
-                                                        </div>
-                                                        <div className="vt-cell-dose">{v.dose}</div>
-                                                    </button>
-                                                </td>
-                                                <td className="vt-cell-text">{v.recommendedAge}</td>
-                                                <td className="vt-cell-text medium">{v.dueDate}</td>
-                                                <td>
-                                                    <span className={`vt-status-badge ${getStatusColor(v.status)}`}>
-                                                        <span className="vt-status-dot"></span>
-                                                        {getStatusLabel(v.status)}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    {v.action === 'recovery' && (
-                                                        <button className="vt-btn-recovery">Recovery Plan</button>
-                                                    )}
-                                                    {v.action === 'mark-done' && (
-                                                        <button
-                                                            className="vt-btn-mark-done"
-                                                            onClick={() => setMarkDoneModal({ show: true, vaccine: v })}
-                                                            disabled={processingId === v.id}
-                                                        >
-                                                            {processingId === v.id ? 'Updating...' : 'Mark Done'}
-                                                        </button>
-                                                    )}
-                                                    {v.action === 'view-details' && (
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                            <button 
-                                                                className="vt-btn-view"
-                                                                onClick={() => setViewDetailsModal({ show: true, vaccine: v })}
-                                                            >
-                                                                View Details
-                                                                <span className="material-symbols-outlined">chevron_right</span>
-                                                            </button>
+                                <div className="vt-table-card">
+                                    <div className="vt-table-scroll">
+                                        <table className="vt-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Vaccine Name</th>
+                                                    <th>Recommended Age</th>
+                                                    <th>Due Date</th>
+                                                    <th>Status</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredVaccines.map((v, i) => (
+                                                    <tr key={i}>
+                                                        <td>
                                                             <button
-                                                                className="vt-btn-undo"
-                                                                onClick={() => handleUndoMarkDone(v.id, v.name)}
-                                                                disabled={processingId === v.id}
-                                                                title="Undo Mark Done"
-                                                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex' }}
+                                                                onClick={() => navigate(`/vaccine-info/${v.name}`)}
+                                                                title="Click to learn more"
+                                                                className="vt-cell-name-btn"
                                                             >
-                                                                <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '20px' }}>undo</span>
+                                                                <div className="vt-cell-name-wrapper">
+                                                                    <span className="vt-cell-name">{v.name}</span>
+                                                                    <span className="material-symbols-outlined vt-info-icon">info</span>
+                                                                </div>
+                                                                <div className="vt-cell-dose">{v.dose}</div>
                                                             </button>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                            </tr>
+                                                        </td>
+                                                        <td className="vt-cell-text">{v.recommendedAge}</td>
+                                                        <td className="vt-cell-text medium">{v.dueDate}</td>
+                                                        <td>
+                                                            <span className={`vt-status-badge ${getStatusColor(v.status)}`}>
+                                                                <span className="vt-status-dot"></span>
+                                                                {getStatusLabel(v.status)}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            {v.action === 'recovery' && (
+                                                                <button className="vt-btn-recovery">Recovery Plan</button>
+                                                            )}
+                                                            {v.action === 'mark-done' && (
+                                                                <button
+                                                                    className="vt-btn-mark-done"
+                                                                    onClick={() => setMarkDoneModal({ show: true, vaccine: v })}
+                                                                    disabled={processingId === v.id}
+                                                                >
+                                                                    {processingId === v.id ? 'Updating...' : 'Mark Done'}
+                                                                </button>
+                                                            )}
+                                                            {v.action === 'view-details' && (
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <button 
+                                                                        className="vt-btn-view"
+                                                                        onClick={() => setViewDetailsModal({ show: true, vaccine: v })}
+                                                                    >
+                                                                        View Details
+                                                                        <span className="material-symbols-outlined">chevron_right</span>
+                                                                    </button>
+                                                                    <button
+                                                                        className="vt-btn-undo"
+                                                                        onClick={() => handleUndoMarkDone(v.id, v.name)}
+                                                                        disabled={processingId === v.id}
+                                                                        title="Undo Mark Done"
+                                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex' }}
+                                                                    >
+                                                                        <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '20px' }}>undo</span>
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Bottom: Timeline + Tip */}
+                            <div className="vt-bottom-grid">
+                                {/* Developmental Timeline */}
+                                <div className="vt-timeline-card">
+                                    <div className="vt-timeline-header">
+                                        <h3 className="vt-timeline-title">
+                                            <span className="material-symbols-outlined">auto_awesome</span>
+                                            {childData.name}'s Developmental Timeline
+                                        </h3>
+                                        <span className="vt-timeline-hint">Swipe to explore</span>
+                                    </div>
+
+                                    <div className="vt-steps">
+                                        {milestones.map((m, i) => (
+                                            <div className="vt-step" key={i}>
+                                                {i < milestones.length - 1 && (
+                                                    <div className={`vt-step-connector ${m.type === 'completed' ? 'completed' : 'pending'}`}></div>
+                                                )}
+                                                <div className={`vt-step-circle ${m.type}`}>
+                                                    <span className="material-symbols-outlined">{m.icon}</span>
+                                                </div>
+                                                <p className={`vt-step-age ${m.type === 'current' ? 'active' : 'default'}`}>{m.age}</p>
+                                                <p className={`vt-step-text ${m.type === 'current' ? 'bold' :
+                                                    m.type === 'future' ? 'muted' : 'default'
+                                                    }`}>
+                                                    {m.label}
+                                                </p>
+                                            </div>
                                         ))}
-                                    </tbody>
-                                </table>
+                                    </div>
+                                </div>
+
+                                {/* Parenting Tip */}
+                                <div className="vt-tip-card">
+                                    <div className="vt-tip-inner">
+                                        <div className="vt-tip-top">
+                                            <div className="vt-tip-icon-box">
+                                                <span className="material-symbols-outlined">emoji_objects</span>
+                                            </div>
+                                            <span className="vt-tip-age-badge">Age 18m Tip</span>
+                                        </div>
+                                        <h4 className="vt-tip-title">Parenting Tip of the Week</h4>
+                                        <p className="vt-tip-text">
+                                            At 18 months, {childData.name} is likely becoming more independent. Try offering
+                                            limited choices ("Do you want the blue shirt or the red one?") to foster autonomy
+                                            while maintaining boundaries. This age is also crucial for the MMR booster—ensure
+                                            his hydration is high post-vaccination.
+                                        </p>
+                                    </div>
+
+                                    <div className="vt-tip-footer">
+                                        <a href="#" className="vt-tip-link">
+                                            Explore Development Guide
+                                            <span className="material-symbols-outlined">arrow_forward</span>
+                                        </a>
+                                        <div className="vt-tip-avatars">
+                                            <div className="vt-tip-avatar-img">
+                                                <img src={childData.parentAvatarUrl} alt="User" />
+                                            </div>
+                                            <div className="vt-tip-avatar-count">+12k</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="vt-tip-bg-icon">
+                                        <span className="material-symbols-outlined">family_restroom</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        /* ===== HEALTH RECORDS VIEW ===== */
+                        <div className="vt-records-view">
+                            <div className="vt-records-header">
+                                <div>
+                                    <h1 className="vt-page-title">Health Records</h1>
+                                    <p className="vt-page-desc">Complete medical history and immunization logs for {childData.name}.</p>
+                                </div>
+                                <button className="vt-btn-download-record" onClick={() => navigate('/digital-card')}>
+                                    <span className="material-symbols-outlined">verified</span>
+                                    View Digital Card
+                                </button>
+                            </div>
+
+                            <div className="vt-records-grid">
+                                {vaccines.filter(v => v.status === 'done').length > 0 ? (
+                                    vaccines.filter(v => v.status === 'done').map((v, i) => (
+                                        <div key={i} className="vt-record-card">
+                                            <div className="vt-record-card-header">
+                                                <div className="vt-record-icon">
+                                                    <span className="material-symbols-outlined">check_circle</span>
+                                                </div>
+                                                <div>
+                                                    <h3 className="vt-record-name">{v.name}</h3>
+                                                    <p className="vt-record-date">Administered on: {v.dateAdministered || v.dueDate}</p>
+                                                </div>
+                                            </div>
+                                            <div className="vt-record-body">
+                                                <div className="vt-record-info-item">
+                                                    <span className="vt-record-label">Hospital</span>
+                                                    <span className="vt-record-value">{v.hospitalName || 'Not specified'}</span>
+                                                </div>
+                                                <div className="vt-record-info-item">
+                                                    <span className="vt-record-label">Doctor</span>
+                                                    <span className="vt-record-value">{v.doctorName || 'Not specified'}</span>
+                                                </div>
+                                                <div className="vt-record-info-item full">
+                                                    <span className="vt-record-label">Notes</span>
+                                                    <p className="vt-record-notes">{v.notes || 'No notes available for this record.'}</p>
+                                                </div>
+                                            </div>
+                                            {v.proofUrl && (
+                                                <div className="vt-record-footer">
+                                                    <a href={v.proofUrl} target="_blank" rel="noreferrer" className="vt-record-link">
+                                                        <span className="material-symbols-outlined">attachment</span>
+                                                        View Proof
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="vt-no-records">
+                                        <span className="material-symbols-outlined" style={{ fontSize: '64px', color: '#cbd5e1' }}>history_edu</span>
+                                        <h3>No Records Found</h3>
+                                        <p>Complete a vaccination and mark it as done to see it in your health records.</p>
+                                        <button className="vt-btn-view" onClick={() => setActiveSideNav('overview')} style={{ marginTop: '16px' }}>
+                                            Go to Overview
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Bottom: Timeline + Tip */}
+                    {/* Bottom: Timeline + Tip (Always visible) */}
                     <div className="vt-bottom-grid">
                         {/* Developmental Timeline */}
                         <div className="vt-timeline-card">
@@ -614,49 +811,118 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
                 </div>
             )}
 
-            {/* View Details Modal */}
-            {viewDetailsModal.show && (
+            {/* Nearby Clinics Modal */}
+            {showClinicsModal && (
                 <div className="vt-modal-overlay">
-                    <div className="vt-modal-content">
-                        <button className="vt-modal-close" onClick={() => setViewDetailsModal({ show: false, vaccine: null })}>
+                    <div className="vt-modal-content clinics-modal">
+                        <button className="vt-modal-close" onClick={() => setShowClinicsModal(false)}>
                             <span className="material-symbols-outlined">close</span>
                         </button>
-                        <div className="vt-view-details-header">
-                            <span className="material-symbols-outlined teal" style={{fontSize: '48px', marginBottom: '12px'}}>verified_user</span>
-                            <h2 className="vt-modal-title" style={{marginBottom: '0'}}>Vaccine Record</h2>
-                            <p style={{color: '#64748b', fontSize: '14px', marginTop: '4px'}}>{viewDetailsModal.vaccine?.name}</p>
+                        <div className="vt-clinics-header">
+                            <span className="material-symbols-outlined teal" style={{fontSize: '48px'}}>medical_services</span>
+                            <h2 className="vt-modal-title">Nearby Vaccination Clinics</h2>
+                            {clinicsData.loading ? (
+                                <p style={{color: '#64748b'}}>Fetching your location and finding best clinics...</p>
+                            ) : (
+                                <p style={{color: '#64748b'}}>
+                                    {clinicsData.list.length > 0 
+                                        ? `Found ${clinicsData.list.length} verified centers near you.`
+                                        : 'Find the nearest healthcare facilities for your child.'}
+                                </p>
+                            )}
                         </div>
                         
-                        <div className="vt-view-details-grid">
-                            <div className="vt-vd-item">
-                                <p className="vt-vd-label">Status</p>
-                                <p className="vt-vd-value" style={{color: '#10b981', fontWeight: 'bold'}}>Done</p>
-                            </div>
-                            <div className="vt-vd-item">
-                                <p className="vt-vd-label">Date Administered</p>
-                                <p className="vt-vd-value">{viewDetailsModal.vaccine?.dateAdministered || viewDetailsModal.vaccine?.dueDate}</p>
-                            </div>
-                            <div className="vt-vd-item">
-                                <p className="vt-vd-label">Hospital / Clinic</p>
-                                <p className="vt-vd-value">{viewDetailsModal.vaccine?.hospitalName || 'Not recorded'}</p>
-                            </div>
-                            <div className="vt-vd-item">
-                                <p className="vt-vd-label">Doctor Name</p>
-                                <p className="vt-vd-value">{viewDetailsModal.vaccine?.doctorName || 'Not recorded'}</p>
-                            </div>
-                            <div className="vt-vd-item" style={{gridColumn: '1 / -1'}}>
-                                <p className="vt-vd-label">Notes</p>
-                                <p className="vt-vd-value">{viewDetailsModal.vaccine?.notes || 'No notes added.'}</p>
-                            </div>
+                        <div className="vt-clinics-list">
+                            {clinicsData.loading && (
+                                <div className="vt-clinics-loading">
+                                    <div className="vt-spinner"></div>
+                                    <p>Searching for centers...</p>
+                                </div>
+                            )}
+
+                            {clinicsData.error && (
+                                <div className="vt-clinics-error">
+                                    <span className="material-symbols-outlined">location_off</span>
+                                    <p>{clinicsData.error}</p>
+                                    <button onClick={fetchNearbyClinics} className="vt-btn-retry">Retry Search</button>
+                                </div>
+                            )}
+
+                            {!clinicsData.loading && !clinicsData.error && clinicsData.list.length > 0 && (
+                                clinicsData.list.map((clinic, i) => {
+                                    return (
+                                        <div 
+                                            key={i} 
+                                            className={`vt-clinic-item ${i < 3 ? 'highlight' : ''} ${i === 0 ? 'nearest' : ''} ${clinicsData.selectedClinic?.name === clinic.name ? 'active' : ''}`}
+                                            onClick={() => setClinicsData(prev => ({ ...prev, selectedClinic: clinic }))}
+                                            style={{cursor: 'pointer'}}
+                                        >
+                                            {i === 0 && <span className="vt-nearest-badge">Nearest</span>}
+                                            <div className="vt-clinic-info">
+                                                <div className="vt-clinic-title-row">
+                                                    <h4>{clinic.name}</h4>
+                                                </div>
+                                                <p className="vt-clinic-address">
+                                                    <span className="vt-type-pill">{clinic.type}</span>
+                                                    {clinic.address}
+                                                </p>
+                                                <div className="vt-clinic-meta">
+                                                    <span className="vt-clinic-distance">
+                                                        <span className="material-symbols-outlined">distance</span>
+                                                        {clinic.distance}
+                                                    </span>
+                                                    <span className="vt-clinic-rating">
+                                                        <span className="material-symbols-outlined">star</span>
+                                                        {clinic.rating}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="vt-clinic-actions">
+                                                <a href={clinic.dirUrl} target="_blank" rel="noreferrer" className="vt-clinic-btn icon" title="Get Directions">
+                                                    <span className="material-symbols-outlined">directions</span>
+                                                </a>
+                                                <a href={clinic.mapUrl} target="_blank" rel="noreferrer" className="vt-clinic-btn primary">
+                                                    View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+
+                            {!clinicsData.loading && !clinicsData.error && clinicsData.locationFetched && clinicsData.list.length === 0 && (
+                                <div className="vt-clinics-empty">
+                                    <span className="material-symbols-outlined">search_off</span>
+                                    <p>No nearby hospitals found. Try increasing search range.</p>
+                                </div>
+                            )}
                         </div>
 
-                        {viewDetailsModal.vaccine?.proofUrl && (
-                            <div className="vt-vd-attachment">
-                                <p className="vt-vd-label" style={{marginBottom: '8px'}}>Hospital Slip Attachment</p>
-                                <a href={viewDetailsModal.vaccine.proofUrl} target="_blank" rel="noreferrer" className="vt-attachment-btn">
-                                    <span className="material-symbols-outlined">visibility</span>
-                                    Preview Uploaded Proof
-                                </a>
+                        {/* Interactive Map View */}
+                        {!clinicsData.loading && clinicsData.selectedClinic && (
+                            <div className="vt-clinics-map-container">
+                                <iframe
+                                    title="Clinic Location"
+                                    width="100%"
+                                    height="250"
+                                    style={{ border: 0, borderRadius: '12px' }}
+                                    loading="lazy"
+                                    allowFullScreen
+                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(clinicsData.selectedClinic.name + ' ' + clinicsData.selectedClinic.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                                ></iframe>
+                            </div>
+                        )}
+
+                        {!clinicsData.loading && (
+                            <div className="vt-clinics-footer">
+                                <button 
+                                    className="vt-btn-view" 
+                                    style={{width: '100%', justifyContent: 'center'}}
+                                    onClick={() => window.open('https://www.google.com/maps/search/vaccination+clinic+near+me', '_blank')}
+                                >
+                                    <span className="material-symbols-outlined">map</span>
+                                    Explore on Google Maps
+                                </button>
                             </div>
                         )}
                     </div>

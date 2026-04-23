@@ -1,32 +1,36 @@
-import pool from './db.js';
+import poolPromise from './db.js';
 
 async function migrate() {
   try {
-    await pool.query('ALTER TABLE vaccines ADD COLUMN hospital_name VARCHAR(255)');
-    console.log('Added hospital_name');
-  } catch (e) { console.log(e.message); }
+    const pool = await poolPromise;
+    
+    const queries = [
+        'ALTER TABLE vaccines ADD COLUMN IF NOT EXISTS hospital_name VARCHAR(255)',
+        'ALTER TABLE vaccines ADD COLUMN IF NOT EXISTS doctor_name VARCHAR(255)',
+        'ALTER TABLE vaccines ADD COLUMN IF NOT EXISTS notes TEXT',
+        'ALTER TABLE vaccines ADD COLUMN IF NOT EXISTS proof_url LONGTEXT',
+        'ALTER TABLE vaccines ADD COLUMN IF NOT EXISTS administered_date DATE'
+    ];
 
-  try {
-    await pool.query('ALTER TABLE vaccines ADD COLUMN doctor_name VARCHAR(255)');
-    console.log('Added doctor_name');
-  } catch (e) { console.log(e.message); }
+    for (const query of queries) {
+        try {
+            await pool.query(query);
+            console.log(`Executed: ${query.split('ADD COLUMN')[1].trim()}`);
+        } catch (e) {
+            // Standard MySQL might not support ADD COLUMN IF NOT EXISTS in older versions
+            // but we ignore errors if column already exists
+            if (!e.message.includes('Duplicate column name')) {
+                console.log(`Error: ${e.message}`);
+            }
+        }
+    }
 
-  try {
-    await pool.query('ALTER TABLE vaccines ADD COLUMN notes TEXT');
-    console.log('Added notes');
-  } catch (e) { console.log(e.message); }
-
-  try {
-    await pool.query('ALTER TABLE vaccines ADD COLUMN proof_url LONGTEXT');
-    console.log('Added proof_url');
-  } catch (e) { console.log(e.message); }
-
-  try {
-    await pool.query('ALTER TABLE vaccines ADD COLUMN administered_date DATE');
-    console.log('Added administered_date');
-  } catch (e) { console.log(e.message); }
-
-  process.exit(0);
+    console.log('Migration check complete.');
+    process.exit(0);
+  } catch (err) {
+    console.error('Migration failed:', err.message);
+    process.exit(1);
+  }
 }
 
 migrate();

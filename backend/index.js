@@ -4,16 +4,20 @@ import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
 import cron from 'node-cron';
-import pool from './db.js';
+import axios from 'axios';
+import poolPromise from './db.js';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5000;
 
+let pool; // This will be initialized from poolPromise
+
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Auth Middleware
 const authenticateToken = (req, res, next) => {
@@ -29,12 +33,14 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// In-memory store for OTPs (temporarily stores email -> { otp, expiresAt })
+// In-memory store for OTPs
 const otpStore = new Map();
 
-// Configure Nodemailer transporter (Example: using Gmail)
+// Configure Nodemailer transporter (Direct SMTP is more reliable than "service: gmail")
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -44,7 +50,9 @@ const transporter = nodemailer.createTransport({
 // Initialize database tables
 const initDb = async () => {
     try {
-        // Create table without dropping it so data persists
+        if (!pool) pool = await poolPromise;
+
+        console.log('Initializing database tables...');
         await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -76,33 +84,57 @@ const initDb = async () => {
         dose_when VARCHAR(255),
         status VARCHAR(50) DEFAULT 'upcoming',
         due_date DATE,
+        administered_date DATE,
+        hospital_name VARCHAR(255),
+        doctor_name VARCHAR(255),
+        notes TEXT,
+        proof_url TEXT,
         FOREIGN KEY (child_id) REFERENCES children(id) ON DELETE CASCADE
       )
     `);
-        console.log('Users, children, and vaccines tables initialized');
+        console.log('Database tables initialized successfully');
     } catch (err) {
-        console.error('Error initializing db:', err);
+        console.error('CRITICAL: Error initializing database tables:', err.message);
+        // We don't exit here, but the server might not function correctly
     }
 };
-initDb();
+
+// Start Server after DB is ready
+const startServer = async () => {
+    try {
+        console.log('Waiting for database connection...');
+        pool = await poolPromise;
+        await initDb();
+        
+        app.listen(port, () => {
+            console.log(`🚀 Server is running on http://localhost:${port}`);
+        });
+    } catch (err) {
+        console.error('FATAL: Could not start server due to database failure.');
+        console.error('Reason:', err.message);
+        process.exit(1);
+    }
+};
+
+startServer();
+
+// --- ROUTES ---
 
 // Basic test route
 app.get('/', (req, res) => {
     res.send('VaxiCare Backend is running!');
 });
 
-// Send real OTP via email
+// Send OTP
 app.post('/api/send-otp', async (req, res) => {
     const { email } = req.body;
     if (!email || !email.includes('@')) {
         return res.status(400).json({ error: 'Valid email address is required' });
     }
 
-    // Generate a secure 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes validity
+    const expiresAt = Date.now() + 5 * 60 * 1000;
 
-    // Save to memory storage
     otpStore.set(email, { otp, expiresAt });
 
     const mailOptions = {
@@ -114,22 +146,22 @@ app.post('/api/send-otp', async (req, res) => {
                 <h2>Welcome to VaxiCare!</h2>
                 <p>Your One-Time Password (OTP) for login is:</p>
                 <h1 style="color: #ec5b13; font-size: 32px; letter-spacing: 5px;">${otp}</h1>
-                <p>This code will expire in 5 minutes. Do not share it with anyone.</p>
+                <p>This code will expire in 5 minutes.</p>
             </div>
         `
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Sent real OTP to ${email}`);
-        res.json({ message: 'OTP sent to your email successfully', success: true });
+        console.log(`Sent OTP to ${email}`);
+        res.json({ message: 'OTP sent successfully', success: true });
     } catch (err) {
-        console.error('Email sending error:', err);
-        res.status(500).json({ error: 'Failed to send OTP email. Please check backend configuration.' });
+        console.error('Email Error:', err.message);
+        res.status(500).json({ error: 'Failed to send OTP email. Check backend logs.' });
     }
 });
 
-// Verify OTP and Login/Signup
+// Verify OTP
 app.post('/api/verify-otp', async (req, res) => {
     const { email, otp } = req.body;
 
@@ -139,53 +171,41 @@ app.post('/api/verify-otp', async (req, res) => {
 
     const storedData = otpStore.get(email);
 
-    if (!storedData) {
-        return res.status(400).json({ error: 'OTP expired or not requested' });
-    }
-
+    if (!storedData) return res.status(400).json({ error: 'OTP expired or not requested' });
     if (Date.now() > storedData.expiresAt) {
         otpStore.delete(email);
-        return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
+        return res.status(400).json({ error: 'OTP expired' });
     }
+    if (storedData.otp !== otp) return res.status(400).json({ error: 'Invalid OTP' });
 
-    if (storedData.otp !== otp) {
-        return res.status(400).json({ error: 'Invalid OTP' });
-    }
-
-    // OTP was correct! Clear it from memory to prevent reuse
     otpStore.delete(email);
 
     try {
+        if (!pool) throw new Error('Database not connected');
+
         // Check if user exists
         const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
         let user = rows[0];
 
-        // Create if they don't exist
         if (!user) {
             const [result] = await pool.query('INSERT INTO users (email) VALUES (?)', [email]);
             user = { id: result.insertId, email: email };
-            console.log('Created new user:', user);
+            console.log('Created new user:', user.email);
         } else {
-            console.log('Existing user logged in:', user);
+            console.log('User logged in:', user.email);
         }
 
         const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || 'your_super_secret_jwt_key_here', { expiresIn: '7d' });
-
         res.json({ message: 'Login successful', user, token, success: true });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ error: 'Server Error' });
+        console.error('DB Error in verify-otp:', err.message);
+        res.status(500).json({ error: 'Database connection failed. Please try again later.' });
     }
 });
 
-// Update Profile API
+// Update Profile
 app.post('/api/profile', authenticateToken, async (req, res) => {
     const { email, full_name, mobile_number, age, profile_picture } = req.body;
-
-    if (!email) {
-        return res.status(400).json({ error: 'Email is required to update profile' });
-    }
-
     try {
         await pool.query(
             'UPDATE users SET full_name = ?, mobile_number = ?, age = ?, profile_picture = ? WHERE email = ?',
@@ -193,16 +213,15 @@ app.post('/api/profile', authenticateToken, async (req, res) => {
         );
         res.json({ message: 'Profile updated successfully!', success: true });
     } catch (err) {
-        console.error('Error updating profile:', err);
+        console.error('Profile Update Error:', err.message);
         res.status(500).json({ error: 'Failed to update profile' });
     }
 });
 
-// Get user's children
+// Get Children
 app.get('/api/children', authenticateToken, async (req, res) => {
     try {
         const [children] = await pool.query('SELECT * FROM children WHERE user_id = ?', [req.user.id]);
-
         for (let child of children) {
             const [vaccines] = await pool.query('SELECT * FROM vaccines WHERE child_id = ?', [child.id]);
             child.vaccines = vaccines.map(v => ({
@@ -217,36 +236,22 @@ app.get('/api/children', authenticateToken, async (req, res) => {
                 proofUrl: v.proof_url || '',
                 dateAdministered: v.administered_date || ''
             }));
-
-            // Reformat native MySQL Date to standard YYYY-MM-DD for frontend compatibility
-            if (child.dob) {
-                const dateObj = new Date(child.dob);
-                child.dob = dateObj.toISOString().split('T')[0];
-            }
-
+            if (child.dob) child.dob = new Date(child.dob).toISOString().split('T')[0];
+            
             child.completed = child.vaccines.filter(v => v.status === 'done').length;
             child.upcoming = child.vaccines.filter(v => v.status === 'upcoming').length;
-            child.missed = child.vaccines.filter(v => v.status === 'missed').length;
             child.progress = child.vaccines.length > 0 ? Math.round((child.completed / child.vaccines.length) * 100) : 0;
-            child.avatarUrl = child.avatar_url;
-            child.bloodGroup = child.blood_group;
         }
-
         res.json({ children, success: true });
     } catch (err) {
-        console.error('Error fetching children:', err);
+        console.error('Fetch Children Error:', err.message);
         res.status(500).json({ error: 'Failed to fetch children' });
     }
 });
 
-// Add a child
+// Add Child
 app.post('/api/children', authenticateToken, async (req, res) => {
     const { name, dob, gender, bloodGroup, avatarUrl, vaccines } = req.body;
-
-    if (!name || !dob) {
-        return res.status(400).json({ error: 'Name and DOB are required' });
-    }
-
     try {
         const [result] = await pool.query(
             'INSERT INTO children (user_id, name, dob, gender, blood_group, avatar_url) VALUES (?, ?, ?, ?, ?, ?)',
@@ -256,189 +261,187 @@ app.post('/api/children', authenticateToken, async (req, res) => {
 
         if (vaccines && vaccines.length > 0) {
             const values = vaccines.map(v => [
-                childId,
-                v.name,
-                v.when,
-                // MySQL date strings standard YYYY-MM-DD
-                v.status,
+                childId, v.name, v.when, v.status,
                 v.dueDate ? new Date(v.dueDate).toISOString().split('T')[0] : null
             ]);
             await pool.query('INSERT INTO vaccines (child_id, name, dose_when, status, due_date) VALUES ?', [values]);
         }
-
         res.json({ message: 'Child added successfully', childId, success: true });
     } catch (err) {
-        console.error('Error adding child:', err);
+        console.error('Add Child Error:', err.message);
         res.status(500).json({ error: 'Failed to add child' });
     }
 });
 
-// Delete a child
-app.delete('/api/children/:id', authenticateToken, async (req, res) => {
-    const childId = req.params.id;
-    try {
-        const [child] = await pool.query('SELECT id FROM children WHERE id = ? AND user_id = ?', [childId, req.user.id]);
-        if (child.length === 0) {
-            return res.status(404).json({ error: 'Child not found or unauthorized' });
-        }
-        await pool.query('DELETE FROM children WHERE id = ?', [childId]);
-        res.json({ message: 'Child deleted successfully', success: true });
-    } catch (err) {
-        console.error('Error deleting child:', err);
-        res.status(500).json({ error: 'Failed to delete child' });
-    }
-});
-
-// Update Vaccine Status
+// Update Vaccine
 app.put('/api/vaccines/:id', authenticateToken, async (req, res) => {
     const vaccineId = req.params.id;
-    const { status, dateAdministered, dueDate, hospitalName, doctorName, notes, proofUrl } = req.body;
-
+    const { status, dateAdministered, hospitalName, doctorName, notes, proofUrl } = req.body;
     try {
-        // Verify the vaccine belongs to a child owned by the logged-in user
-        const [vaccineCheck] = await pool.query(`
-            SELECT v.id FROM vaccines v
-            JOIN children c ON v.child_id = c.id
-            WHERE v.id = ? AND c.user_id = ?
-        `, [vaccineId, req.user.id]);
-
-        if (vaccineCheck.length === 0) {
-            return res.status(404).json({ error: 'Vaccine not found or unauthorized' });
-        }
-
         if (status === 'done') {
             await pool.query(
-                `UPDATE vaccines 
-                 SET status = ?, due_date = ?, administered_date = ?, hospital_name = ?, doctor_name = ?, notes = ?, proof_url = ? 
-                 WHERE id = ?`,
-                [
-                    status, 
-                    dateAdministered || new Date().toISOString().split('T')[0], 
-                    dateAdministered || new Date().toISOString().split('T')[0],
-                    hospitalName || null,
-                    doctorName || null,
-                    notes || null,
-                    proofUrl || null,
-                    vaccineId
-                ]
+                `UPDATE vaccines SET status = ?, administered_date = ?, hospital_name = ?, doctor_name = ?, notes = ?, proof_url = ? WHERE id = ?`,
+                [status, dateAdministered || new Date().toISOString().split('T')[0], hospitalName, doctorName, notes, proofUrl, vaccineId]
             );
         } else {
-            if (dueDate) {
-                await pool.query(
-                    'UPDATE vaccines SET status = ?, due_date = ?, hospital_name=NULL, doctor_name=NULL, notes=NULL, proof_url=NULL, administered_date=NULL WHERE id = ?',
-                    [status, dueDate, vaccineId]
-                );
-            } else {
-                await pool.query(
-                    'UPDATE vaccines SET status = ?, hospital_name=NULL, doctor_name=NULL, notes=NULL, proof_url=NULL, administered_date=NULL WHERE id = ?',
-                    [status, vaccineId]
-                );
-            }
+            await pool.query('UPDATE vaccines SET status = ? WHERE id = ?', [status, vaccineId]);
         }
-
         res.json({ message: 'Vaccine updated successfully', success: true });
     } catch (err) {
-        console.error('Error updating vaccine:', err);
+        console.error('Update Vaccine Error:', err.message);
         res.status(500).json({ error: 'Failed to update vaccine' });
     }
 });
 
-// Daily Cron Job for Reminders (Runs at 8:00 AM every day)
-cron.schedule('0 8 * * *', async () => {
-    console.log('Running daily vaccine reminder check...');
+// Get Public Child Info (for sharing)
+app.get('/api/public/child/:id', async (req, res) => {
     try {
-        // Find vaccines due in exactly 3 days that are still 'upcoming'
-        const [dueVaccines] = await pool.query(`
-            SELECT v.name as vaccine_name, v.due_date, c.name as child_name, u.email as parent_email 
-            FROM vaccines v
-            JOIN children c ON v.child_id = c.id
-            JOIN users u ON c.user_id = u.id
-            WHERE v.status = 'upcoming' 
-            AND v.due_date = DATE_ADD(CURDATE(), INTERVAL 3 DAY)
-        `);
+        const childId = req.params.id;
+        const [rows] = await pool.query('SELECT name, dob, gender, blood_group, avatar_url FROM children WHERE id = ?', [childId]);
+        const child = rows[0];
 
-        if (dueVaccines.length > 0) {
-            console.log(`Found ${dueVaccines.length} vaccines due soon. Sending emails...`);
-            for (const reminder of dueVaccines) {
-                const formattedDate = new Date(reminder.due_date).toLocaleDateString();
-                const mailOptions = {
-                    from: process.env.EMAIL_USER,
-                    to: reminder.parent_email,
-                    subject: `VaxiCare Reminder: ${reminder.child_name}'s vaccination is coming up!`,
-                    html: `
-                        <div style="font-family: sans-serif; padding: 20px; color: #333;">
-                            <h2>Hello from VaxiCare!</h2>
-                            <p>This is a gentle reminder that your child, <strong>${reminder.child_name}</strong>, has an upcoming vaccination.</p>
-                            <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #ec5b13; margin: 20px 0;">
-                                <p style="margin: 0; font-size: 16px;"><strong>Vaccine:</strong> ${reminder.vaccine_name}</p>
-                                <p style="margin: 5px 0 0 0; font-size: 16px;"><strong>Due Date:</strong> ${formattedDate}</p>
-                            </div>
-                            <p>Please make sure to schedule an appointment with your pediatrician if you haven't already.</p>
-                            <p>Stay healthy!<br/>- The VaxiCare Team</p>
-                        </div>
-                    `
+        if (!child) {
+            return res.status(404).json({ error: 'Child record not found' });
+        }
+
+        const [vaccines] = await pool.query('SELECT name, dose_when, status, due_date, administered_date, hospital_name, doctor_name FROM vaccines WHERE child_id = ?', [childId]);
+        
+        child.vaccines = vaccines.map(v => ({
+            name: v.name,
+            when: v.dose_when,
+            status: v.status,
+            dueDate: v.due_date,
+            dateAdministered: v.administered_date || '',
+            hospitalName: v.hospital_name || '',
+            doctorName: v.doctor_name || ''
+        }));
+
+        res.json({ child, success: true });
+    } catch (err) {
+        console.error('Public Fetch Child Error:', err.message);
+        res.status(500).json({ error: 'Failed to fetch public record' });
+    }
+});
+
+// Send Card via Email
+app.post('/api/send-card-email', async (req, res) => {
+    // ... existing code ...
+});
+
+// Nearby Clinics API (Google Places Integration)
+app.get('/api/nearby-clinics', async (req, res) => {
+    const { lat, lng, radius = 5000 } = req.query;
+    const apiKey = process.env.GOOGLE_API_KEY;
+
+    if (!lat || !lng) {
+        return res.status(400).json({ error: 'Latitude and Longitude are required' });
+    }
+
+    // Haversine formula to calculate distance in km
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+        const R = 6371; // Radius of the earth in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return (R * c).toFixed(1);
+    };
+
+    // Fallback to OpenStreetMap (Overpass API) if Google API key is missing
+    if (!apiKey || apiKey === 'YOUR_ACTUAL_GOOGLE_API_KEY_HERE') {
+        console.log(`OSM Fallback: Searching real hospitals near ${lat}, ${lng}`);
+        try {
+            // Expanded Overpass API query: find all medical facilities within 10km
+            const osmQuery = `[out:json];(node["amenity"~"hospital|clinic|doctors|medical_center"](around:10000,${lat},${lng});way["amenity"~"hospital|clinic|doctors|medical_center"](around:10000,${lat},${lng}););out center;`;
+            const osmUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(osmQuery)}`;
+            const osmResponse = await axios.get(osmUrl);
+            
+            const osmClinics = (osmResponse.data.elements || []).map(el => {
+                const name = el.tags.name || 'Healthcare Facility';
+                const type = el.tags.amenity === 'hospital' ? 'Hospital' : (el.tags.amenity === 'doctors' ? 'Doctor' : 'Clinic');
+                const clinicLat = el.lat || el.center.lat;
+                const clinicLng = el.lon || el.center.lon;
+                
+                return {
+                    name: name,
+                    address: el.tags['addr:full'] || el.tags['addr:street'] ? `${el.tags['addr:street'] || ''} ${el.tags['addr:housenumber'] || ''}` : 'Local area',
+                    rating: 'Verified',
+                    type: type,
+                    distance: `${calculateDistance(lat, lng, clinicLat, clinicLng)} km`,
+                    mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ' ' + type)}`,
+                    dirUrl: `https://www.google.com/maps/dir/?api=1&destination=${clinicLat},${clinicLng}`,
+                    phone: el.tags.phone || el.tags['contact:phone'] || null
                 };
-                await transporter.sendMail(mailOptions);
-                console.log(`Sent reminder to ${reminder.parent_email} for ${reminder.child_name}`);
+            });
+
+            if (osmClinics.length > 0) {
+                console.log(`Found ${osmClinics.length} real healthcare facilities via OSM`);
+                return res.json({ success: true, clinics: osmClinics });
             }
-        } else {
-            console.log('No vaccines due in 3 days. Skipping emails.');
+            
+            throw new Error('No real facilities found in 10km radius');
+        } catch (osmErr) {
+            console.error('OSM Fetch failed:', osmErr.message);
+            return res.status(404).json({ error: 'No real hospitals found nearby. Please try again later or add a Google API Key.', details: osmErr.message });
         }
-    } catch (err) {
-        console.error('Error running daily cron job:', err);
     }
-});
 
-// Manual trigger for testing/demoing the Cron Job in a hackathon
-app.get('/api/trigger-reminders', async (req, res) => {
-    console.log('Manual trigger: Running vaccine reminder check...');
     try {
-        // Find vaccines due in exactly 3 days that are still 'upcoming'
-        // For Hackathon Demo purposes, we removed the strict '3 DAY' condition 
-        // to just grab *any* upcoming vaccine quickly so the email actually sends!
-        const [dueVaccines] = await pool.query(`
-            SELECT v.name as vaccine_name, v.due_date, c.name as child_name, u.email as parent_email 
-            FROM vaccines v
-            JOIN children c ON v.child_id = c.id
-            JOIN users u ON c.user_id = u.id
-            WHERE v.status = 'upcoming' OR v.status = 'due'
-            LIMIT 1
-        `);
-
-        if (dueVaccines.length > 0) {
-            console.log(`Found vaccine to demo. Sending email...`);
-            const reminder = dueVaccines[0];
-            const formattedDate = new Date(reminder.due_date).toLocaleDateString();
-            const mailOptions = {
-                from: process.env.EMAIL_USER,
-                to: reminder.parent_email,
-                subject: `VaxiCare Reminder: ${reminder.child_name}'s vaccination is coming up!`,
-                html: `
-                    <div style="font-family: sans-serif; padding: 20px; color: #333;">
-                        <h2>Hello from VaxiCare!</h2>
-                        <p>This is a gentle reminder that your child, <strong>${reminder.child_name}</strong>, has an upcoming vaccination.</p>
-                        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #ec5b13; margin: 20px 0;">
-                            <p style="margin: 0; font-size: 16px;"><strong>Vaccine:</strong> ${reminder.vaccine_name}</p>
-                            <p style="margin: 5px 0 0 0; font-size: 16px;"><strong>Due Date:</strong> ${formattedDate}</p>
-                        </div>
-                        <p>Please make sure to schedule an appointment with your pediatrician if you haven't already.</p>
-                        <p>Stay healthy!<br/>- The VaxiCare Team</p>
-                    </div>
-                `
-            };
-            await transporter.sendMail(mailOptions);
-            res.json({ message: `Sent reminder to ${reminder.parent_email} for ${reminder.child_name}`, success: true });
-        } else {
-            res.json({ message: 'No upcoming vaccines found to send a demo email for.', success: false });
+        // Use broad keywords to find all healthcare facilities
+        const keyword = encodeURIComponent('hospital clinic doctor health center');
+        const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&keyword=${keyword}&key=${apiKey}`;
+        const response = await axios.get(url);
+        
+        if (response.data.status !== 'OK' && response.data.status !== 'ZERO_RESULTS') {
+            throw new Error(`Google API Error: ${response.data.status}`);
         }
+
+        const clinics = (response.data.results || []).map(place => {
+            // Determine a user-friendly type
+            let type = 'Clinic';
+            if (place.types.includes('hospital')) type = 'Hospital';
+            else if (place.types.includes('doctor')) type = 'Doctor';
+            else if (place.types.includes('health')) type = 'Health Center';
+
+            return {
+                name: place.name,
+                address: place.vicinity,
+                rating: place.rating || 'N/A',
+                type: type,
+                distance: `${calculateDistance(lat, lng, place.geometry.location.lat, place.geometry.location.lng)} km`,
+                mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`,
+                dirUrl: `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat},${place.geometry.location.lng}&destination_place_id=${place.place_id}`,
+                phone: null 
+            };
+        });
+
+        res.json({ success: true, clinics });
     } catch (err) {
-        console.error('Error running manual reminder trigger:', err);
-        res.status(500).json({ error: 'Failed to trigger reminders' });
+        console.error('Nearby Clinics Error:', err.message);
+        res.status(500).json({ error: 'Failed to fetch nearby clinics', details: err.message });
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+// Reminder Cron Job
+cron.schedule('0 8 * * *', async () => {
+    try {
+        const [due] = await pool.query(`
+            SELECT v.name as vaccine_name, v.due_date, c.name as child_name, u.email 
+            FROM vaccines v JOIN children c ON v.child_id = c.id JOIN users u ON c.user_id = u.id
+            WHERE v.status = 'upcoming' AND v.due_date = DATE_ADD(CURDATE(), INTERVAL 3 DAY)
+        `);
+        for (const r of due) {
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: r.email,
+                subject: `VaxiCare Reminder: ${r.child_name}'s vaccination`,
+                text: `Reminder for ${r.vaccine_name} on ${new Date(r.due_date).toLocaleDateString()}`
+            });
+        }
+    } catch (err) {
+        console.error('Cron Error:', err.message);
+    }
 });
-
-// Force nodemon restart to load .env

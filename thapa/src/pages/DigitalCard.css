@@ -933,3 +933,107 @@
         gap: 0.5rem 1rem;
     }
 }
+
+/* Status Text Styles */
+.dc-status-text {
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dc-status-text.green {
+    color: #16a34a;
+    background: #dcfce7;
+}
+
+.dc-status-text.blue, .dc-status-text.red {
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+.dc-status-text.red {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+/* Loading State */
+.dc-action-btn.loading {
+    opacity: 0.8;
+    cursor: wait;
+}
+
+.dc-action-btn.loading .material-symbols-outlined {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Print Container */
+.dc-card-printable-container {
+    padding: 20px;
+    background: #f8fafc;
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    body {
+        background: white !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    .dc-wrapper {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .dc-breadcrumb,
+    .dc-actions-row,
+    .dc-footer,
+    .dc-stats-row {
+        display: none !important;
+    }
+
+    .dc-card-printable-container {
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    .dc-card {
+        margin: 0 !important;
+        padding: 20px !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: white !important;
+        border-radius: 0 !important;
+    }
+
+    .dc-table-wrapper {
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    .dc-card-title {
+        color: #0f172a !important;
+    }
+
+    .dc-info-value.highlight {
+        color: #ef4444 !important;
+    }
+
+    /* Force background colors for print */
+    .dc-validated-badge,
+    .dc-status-text,
+    .dc-due-badge,
+    .dc-shield-icon,
+    .dc-stat-icon {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
