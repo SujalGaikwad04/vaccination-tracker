@@ -2,6 +2,7 @@ import './App.css'
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
+import ChatBot from './components/ChatBot'
 import Dashboard from './pages/Dashboard'
 import VaccineTracker from './pages/VaccineTracker'
 import DigitalCard from './pages/DigitalCard'
@@ -17,22 +18,69 @@ const AppContent = ({ isLoggedIn, setIsLoggedIn, childProfiles, setChildProfiles
 
   const activeChild = childProfiles[activeChildIndex] || null;
 
-  // Theme switching has been removed to restore the default website colors
+  // ChatBot state — shared globally across all pages
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatInitialMsg, setChatInitialMsg] = useState('');
+
+  // Listen for navigation state to open chat with a pre-filled question
+  useEffect(() => {
+    if (location.state?.openChat) {
+      setChatInitialMsg(location.state.chatQuestion || '');
+      setChatOpen(true);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  const showFloatingBtn = !hideHeaderRoutes.includes(location.pathname) && !chatOpen;
 
   return (
     <>
-      {!hideHeaderRoutes.includes(location.pathname) && <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} activeChild={activeChild} childProfiles={childProfiles} setActiveChildIndex={setActiveChildIndex} />}
+      {!hideHeaderRoutes.includes(location.pathname) && (
+        <Header
+          isLoggedIn={isLoggedIn}
+          setIsLoggedIn={setIsLoggedIn}
+          activeChild={activeChild}
+          childProfiles={childProfiles}
+          setActiveChildIndex={setActiveChildIndex}
+        />
+      )}
+
       <Routes>
         <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
         <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
         <Route path="/dashboard" element={<Dashboard childProfiles={childProfiles} setChildProfiles={setChildProfiles} activeChildIndex={activeChildIndex} setActiveChildIndex={setActiveChildIndex} />} />
         <Route path="/vaccine-tracker" element={<VaccineTracker activeChild={activeChild} childProfiles={childProfiles} setChildProfiles={setChildProfiles} />} />
         <Route path="/digital-card" element={<DigitalCard activeChild={activeChild} />} />
-        <Route path="/awareness" element={<Awareness />} />
+        <Route path="/awareness" element={
+          <Awareness
+            openChat={(q) => { setChatInitialMsg(q || ''); setChatOpen(true); }}
+          />
+        } />
         <Route path="/profile" element={<Profile activeChild={activeChild} setIsLoggedIn={setIsLoggedIn} />} />
         <Route path="/public/:id" element={<PublicView />} />
         <Route path="/vaccine-info/:id" element={<VaccineInfo />} />
       </Routes>
+
+      {/* Global Floating Chat Button */}
+      {showFloatingBtn && (
+        <button
+          className="vx-float-btn"
+          onClick={() => { setChatInitialMsg(''); setChatOpen(true); }}
+          title="Ask VaxiCare AI"
+          id="open-vaxicare-ai"
+        >
+          <span className="material-symbols-outlined">smart_toy</span>
+          <span className="vx-float-badge">AI</span>
+          <span className="vx-float-tooltip">Ask VaxiCare AI</span>
+        </button>
+      )}
+
+      {/* Global ChatBot Modal */}
+      <ChatBot
+        isOpen={chatOpen}
+        onClose={() => { setChatOpen(false); setChatInitialMsg(''); }}
+        initialMessage={chatInitialMsg}
+      />
     </>
   );
 };

@@ -445,3 +445,5 @@ cron.schedule('0 8 * * *', async () => {
         console.error('Cron Error:', err.message);
     }
 });
+
+// Force nodemon restart to load .env
