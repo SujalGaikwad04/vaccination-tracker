@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const Login = ({ setIsLoggedIn }) => {
     const navigate = useNavigate();
@@ -27,7 +28,7 @@ const Login = ({ setIsLoggedIn }) => {
             setLoading(true);
             setError('');
             try {
-                const response = await fetch('http://localhost:5000/api/send-otp', {
+                const response = await fetch(`${API_URL}/api/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
@@ -60,7 +61,7 @@ const Login = ({ setIsLoggedIn }) => {
         setLoading(true);
         setError('');
         try {
-            const response = await fetch('http://localhost:5000/api/verify-otp', {
+            const response = await fetch(`${API_URL}/api/verify-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, otp: otpString })

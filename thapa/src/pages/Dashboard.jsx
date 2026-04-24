@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { generateVaccineSchedule } from '../utils/vaccinationData';
+import { API_URL } from '../config';
 
 const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiveChildIndex }) => {
     const children = childProfiles || [];
@@ -38,7 +39,7 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/children', {
+            const response = await fetch(`${API_URL}/api/children`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,7 +50,7 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
 
             if (response.ok) {
                 // Fetch updated children list to get the real database IDs for vaccines
-                const fetchRes = await fetch('http://localhost:5000/api/children', {
+                const fetchRes = await fetch(`${API_URL}/api/children`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -74,7 +75,7 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
         if (window.confirm(`Are you sure you want to delete ${activeChild.name}'s profile? This action cannot be undone.`)) {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:5000/api/children/${activeChild.id}`, {
+                const response = await fetch(`${API_URL}/api/children/${activeChild.id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -99,7 +100,7 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
     const handleTriggerReminders = async () => {
         setIsSendingEmail(true);
         try {
-            const response = await fetch('http://localhost:5000/api/trigger-reminders');
+            const response = await fetch(`${API_URL}/api/trigger-reminders`);
             const data = await response.json();
             if(data.success) {
                 alert(`Success: ${data.message}`);

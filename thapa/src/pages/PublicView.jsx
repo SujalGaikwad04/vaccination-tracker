@@ -6,6 +6,7 @@ import jsPDF from 'jspdf';
 import toast, { Toaster } from 'react-hot-toast';
 import { QRCodeCanvas } from 'qrcode.react';
 import './DigitalCard.css';
+import { API_URL } from '../config';
 
 const PublicView = () => {
     const { id } = useParams();
@@ -18,7 +19,7 @@ const PublicView = () => {
     useEffect(() => {
         const fetchPublicData = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/api/public/child/${id}`);
+                const response = await fetch(`${API_URL}/api/public/child/${id}`);
                 if (!response.ok) throw new Error('Record not found');
                 const data = await response.json();
                 setChild(data.child);

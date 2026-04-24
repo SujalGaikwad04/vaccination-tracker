@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import './Profile.css';
+import { API_URL } from '../config';
 
 const Profile = ({ setIsLoggedIn }) => {
     const navigate = useNavigate();
@@ -26,7 +27,7 @@ const Profile = ({ setIsLoggedIn }) => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/change-password', {
+            const response = await fetch(`${API_URL}/api/change-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -72,7 +73,7 @@ const Profile = ({ setIsLoggedIn }) => {
         setMessage('');
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/profile', {
+            const response = await fetch(`${API_URL}/api/profile`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

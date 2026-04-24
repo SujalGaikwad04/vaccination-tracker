@@ -6,6 +6,7 @@ import QRCode from 'qrcode';
 import toast, { Toaster } from 'react-hot-toast';
 import { QRCodeCanvas } from 'qrcode.react';
 import './DigitalCard.css';
+import { API_URL } from '../config';
 
 const DigitalCard = ({ activeChild }) => {
     const [isLoading, setIsLoading] = useState({
@@ -183,7 +184,7 @@ const DigitalCard = ({ activeChild }) => {
             const pdfBase64 = doc.output('datauristring').split(',')[1];
 
             // 2. Send to backend
-            const response = await fetch('http://localhost:5000/api/send-card-email', {
+            const response = await fetch(`${API_URL}/api/send-card-email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

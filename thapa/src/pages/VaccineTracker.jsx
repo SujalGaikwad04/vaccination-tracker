@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './VaccineTracker.css';
 import { generateVaccineSchedule, calculateMilestones } from '../utils/vaccinationData';
+import { API_URL } from '../config';
 
 const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
     const [activeFilter, setActiveFilter] = useState('all');
@@ -109,7 +110,7 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
             async (position) => {
                 const { latitude, longitude } = position.coords;
                 try {
-                    const response = await fetch(`http://localhost:5000/api/nearby-clinics?lat=${latitude}&lng=${longitude}`);
+                    const response = await fetch(`${API_URL}/api/nearby-clinics?lat=${latitude}&lng=${longitude}`);
                     const data = await response.json();
                     if (data.success) {
                         // Sort by distance numerically
@@ -216,7 +217,7 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
             const token = localStorage.getItem('token');
             const today = submitData.dateAdministered || new Date().toISOString().split('T')[0];
 
-            const response = await fetch(`http://localhost:5000/api/vaccines/${vaccineId}`, {
+            const response = await fetch(`${API_URL}/api/vaccines/${vaccineId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -287,7 +288,7 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
                 }
             }
 
-            const response = await fetch(`http://localhost:5000/api/vaccines/${vaccineId}`, {
+            const response = await fetch(`${API_URL}/api/vaccines/${vaccineId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

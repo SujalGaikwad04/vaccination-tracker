@@ -12,6 +12,7 @@ import Login from './pages/Login'
 import PublicView from './pages/PublicView'
 import VaccineInfo from './pages/VaccineInfo'
 import { SettingsProvider } from './context/SettingsContext'
+import { API_URL } from './config'
 
 const AppContent = ({ isLoggedIn, setIsLoggedIn, childProfiles, setChildProfiles, activeChildIndex, setActiveChildIndex }) => {
   const location = useLocation();
@@ -103,7 +104,7 @@ function App() {
             setIsLoggedIn(false);
             return;
           }
-          const response = await fetch('http://localhost:5000/api/children', {
+          const response = await fetch(`${API_URL}/api/children`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
