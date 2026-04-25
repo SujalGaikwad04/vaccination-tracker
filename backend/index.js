@@ -16,7 +16,23 @@ const port = process.env.PORT || 5000;
 let pool; // This will be initialized from poolPromise
 
 // Middleware
-app.use(cors());
+const allowedOrigins = [
+    'http://localhost:5173', // Vite default
+    'http://localhost:3000',
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            return callback(null, true); // In development or if not strictly set, allow all. Change to error for high security.
+        }
+        return callback(null, true);
+    },
+    credentials: true
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
