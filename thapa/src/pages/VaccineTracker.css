@@ -1106,15 +1106,15 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    right: 0;
+    bottom: 0;
     background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 9999;
+    backdrop-filter: blur(12px);
+    z-index: 2000; /* Above Header */
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    padding: 1.5rem;
     animation: fadeIn 0.2s ease forwards;
 }
 
@@ -1881,4 +1881,122 @@
 .vt-clinics-map-container iframe {
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
+
+/* ===== MODALS & OVERLAYS ===== */
+.vt-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background-color: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: vt-fade-in 0.3s ease-out;
+}
+
+.vt-modal-card {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 550px;
+    border-radius: 2rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vt-modal-header {
+    padding: 1.75rem 2rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.vt-modal-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.vt-modal-icon-wrapper.red {
+    background: #fff1f2;
+    color: #f43f5e;
+    border: 1px solid #ffe4e6;
+}
+
+.vt-modal-title-area {
+    flex: 1;
+}
+
+.vt-modal-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.vt-modal-subtitle {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0.25rem 0 0;
+    font-weight: 500;
+}
+
+.vt-modal-close {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.vt-modal-close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    transform: rotate(90deg);
+}
+
+.vt-modal-body {
+    padding: 2rem;
+}
+
+@keyframes vt-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes vt-zoom-in {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.animate-in {
+    animation-fill-mode: forwards;
+}
+
+.fade-in {
+    animation-name: vt-fade-in;
+}
+
+.zoom-in {
+    animation-name: vt-zoom-in;
+}
+
+.duration-200 {
+    animation-duration: 200ms;
+}
+
 

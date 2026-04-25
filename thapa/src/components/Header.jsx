@@ -9,8 +9,35 @@ const Header = ({ isLoggedIn, setIsLoggedIn, activeChild, childProfiles, setActi
   const navigate = useNavigate();
 
   const [childSelectorOpen, setChildSelectorOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const desktopChildSelectorRef = useRef(null);
   const mobileChildSelectorRef = useRef(null);
+  const notificationRef = useRef(null);
+
+  // Calculate Alerts
+  let missedAlerts = [];
+  let upcomingAlerts = [];
+  if (activeChild && activeChild.vaccines) {
+    const sortedVaccines = [...activeChild.vaccines].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    missedAlerts = sortedVaccines.filter(v => v.status === 'missed').map(v => ({
+      type: 'missed',
+      title: `${v.name} missed`,
+      time: `Was due on ${new Date(v.dueDate).toLocaleDateString()}`
+    }));
+    upcomingAlerts = sortedVaccines.filter(v => v.status === 'due' || v.status === 'upcoming')
+      .filter(v => {
+        const due = new Date(v.dueDate);
+        const today = new Date();
+        const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 && diffDays <= 7; // Remind 1 week ahead
+      })
+      .map(v => ({
+        type: 'upcoming',
+        title: `${v.name} due soon`,
+        time: `Due on ${new Date(v.dueDate).toLocaleDateString()}`
+      }));
+  }
+  const allAlerts = [...missedAlerts, ...upcomingAlerts].slice(0, 5);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -22,9 +49,13 @@ const Header = ({ isLoggedIn, setIsLoggedIn, activeChild, childProfiles, setActi
 
       const isOutsideDesktop = desktopChildSelectorRef.current && !desktopChildSelectorRef.current.contains(event.target);
       const isOutsideMobile = mobileChildSelectorRef.current && !mobileChildSelectorRef.current.contains(event.target);
+      const isOutsideNotification = notificationRef.current && !notificationRef.current.contains(event.target);
 
       if (isOutsideDesktop && isOutsideMobile) {
         setChildSelectorOpen(false);
+      }
+      if (isOutsideNotification) {
+        setNotificationsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -63,7 +94,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, activeChild, childProfiles, setActi
             <div className="profile-img-container">
               <img
                 data-alt="Child portrait"
-                src={activeChild ? (activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=0D8ABC&color=fff&rounded=true`) : "https://ui-avatars.com/api/?name=Child&background=0D8ABC&color=fff&rounded=true"}
+                src={activeChild ? (activeChild.avatarUrl || (activeChild.gender?.toLowerCase() === 'male' || activeChild.gender?.toLowerCase() === 'boy' ? '/baby-boy.png' : activeChild.gender?.toLowerCase() === 'female' || activeChild.gender?.toLowerCase() === 'girl' ? '/baby-girl.png' : `https://ui-avatars.com/api/?name=${activeChild.name}&background=0D8ABC&color=fff&rounded=true`)) : "/baby-boy.png"}
                 alt="Child Profile Placeholder"
               />
             </div>
@@ -91,7 +122,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, activeChild, childProfiles, setActi
                   }}
                 >
                   <div className="flex items-center gap-2 w-full text-left">
-                    <img src={child.avatarUrl || `https://ui-avatars.com/api/?name=${child.name}&background=${(child.gender && (child.gender.toLowerCase() === 'male' || child.gender.toLowerCase() === 'boy')) ? 'C4D9FF' : (child.gender && (child.gender.toLowerCase() === 'female' || child.gender.toLowerCase() === 'girl')) ? 'F5AFAF' : 'ec5b13'}&color=fff&rounded=true&size=24`} alt={child.name} className="rounded-full w-6 h-6 object-cover" />
+                    <img src={child.avatarUrl || (child.gender?.toLowerCase() === 'male' || child.gender?.toLowerCase() === 'boy' ? '/baby-boy.png' : child.gender?.toLowerCase() === 'female' || child.gender?.toLowerCase() === 'girl' ? '/baby-girl.png' : `https://ui-avatars.com/api/?name=${child.name}&background=ec5b13&color=fff&rounded=true&size=24`)} alt={child.name} className="rounded-full w-6 h-6 object-cover" />
                     <span>{child.name}</span>
                   </div>
                 </button>
@@ -102,9 +133,52 @@ const Header = ({ isLoggedIn, setIsLoggedIn, activeChild, childProfiles, setActi
 
         {/* Right: Notifications & User */}
         <div className="header-actions">
-          <button className="notification-btn">
-            <img src="/bell-icon.png" alt="Notifications" className="bell-img" />
-          </button>
+          <div className="notification-container" ref={notificationRef}>
+            <button className="notification-btn" onClick={() => setNotificationsOpen(!notificationsOpen)}>
+              <img src="/bell-icon.png" alt="Notifications" className="bell-img" />
+              {allAlerts.length > 0 && <span className="notification-badge">{allAlerts.length}</span>}
+            </button>
+
+            <div className={`notification-dropdown ${notificationsOpen ? 'open' : ''}`}>
+              <div className="notif-header">
+                <h3>Notifications</h3>
+                {allAlerts.length > 0 && <span className="notif-count">{allAlerts.length} New</span>}
+              </div>
+              <div className="notif-body">
+                {allAlerts.length === 0 ? (
+                  <div className="notif-empty">
+                    <span className="material-symbols-outlined">notifications_off</span>
+                    <p>No new notifications</p>
+                  </div>
+                ) : (
+                  allAlerts.map((alert, idx) => (
+                    <div key={idx} className={`notif-item ${alert.type}`} onClick={() => {
+                      setNotificationsOpen(false);
+                      if (alert.type === 'missed') navigate('/vaccine-tracker');
+                      else navigate('/dashboard');
+                    }}>
+                      <div className="notif-icon">
+                        <span className="material-symbols-outlined">
+                          {alert.type === 'missed' ? 'warning' : 'event_upcoming'}
+                        </span>
+                      </div>
+                      <div className="notif-content">
+                        <p className="notif-title">{alert.title}</p>
+                        <p className="notif-time">{alert.time}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              {allAlerts.length > 0 && (
+                <div className="notif-footer">
+                  <button onClick={() => { setNotificationsOpen(false); navigate('/vaccine-tracker'); }}>
+                    View All Schedule
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
           <div className="divider"></div>
 
@@ -166,7 +240,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, activeChild, childProfiles, setActi
           <button className="profile-btn" onClick={() => setChildSelectorOpen(!childSelectorOpen)}>
             <div className="profile-img-container">
               <img
-                src={activeChild ? (activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=0D8ABC&color=fff&rounded=true`) : "https://ui-avatars.com/api/?name=Child&background=0D8ABC&color=fff&rounded=true"}
+                src={activeChild ? (activeChild.avatarUrl || (activeChild.gender?.toLowerCase() === 'male' || activeChild.gender?.toLowerCase() === 'boy' ? '/baby-boy.png' : activeChild.gender?.toLowerCase() === 'female' || activeChild.gender?.toLowerCase() === 'girl' ? '/baby-girl.png' : `https://ui-avatars.com/api/?name=${activeChild.name}&background=0D8ABC&color=fff&rounded=true`)) : "/baby-boy.png"}
                 alt="Child Profile Placeholder"
               />
             </div>
@@ -195,7 +269,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, activeChild, childProfiles, setActi
                   }}
                 >
                   <div className="flex items-center gap-2 w-full text-left">
-                    <img src={child.avatarUrl || `https://ui-avatars.com/api/?name=${child.name}&background=${(child.gender && (child.gender.toLowerCase() === 'male' || child.gender.toLowerCase() === 'boy')) ? 'C4D9FF' : (child.gender && (child.gender.toLowerCase() === 'female' || child.gender.toLowerCase() === 'girl')) ? 'F5AFAF' : 'ec5b13'}&color=fff&rounded=true&size=24`} alt={child.name} className="rounded-full w-6 h-6 object-cover" />
+                    <img src={child.avatarUrl || (child.gender?.toLowerCase() === 'male' || child.gender?.toLowerCase() === 'boy' ? '/baby-boy.png' : child.gender?.toLowerCase() === 'female' || child.gender?.toLowerCase() === 'girl' ? '/baby-girl.png' : `https://ui-avatars.com/api/?name=${child.name}&background=ec5b13&color=fff&rounded=true&size=24`)} alt={child.name} className="rounded-full w-6 h-6 object-cover" />
                     <span>{child.name}</span>
                   </div>
                 </button>

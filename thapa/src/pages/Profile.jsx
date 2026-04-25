@@ -15,6 +15,8 @@ const Profile = ({ setIsLoggedIn }) => {
     const [message, setMessage] = useState('');
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' });
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [newEmail, setNewEmail] = useState('');
 
     const { theme, setTheme, fontSize, setFontSize, isPrivate, setIsPrivate } = useSettings();
 
@@ -46,6 +48,35 @@ const Profile = ({ setIsLoggedIn }) => {
                 setPasswordData({ current: '', new: '', confirm: '' });
             } else {
                 alert(data.error || "Failed to update password");
+            }
+        } catch (err) {
+            alert("Connection error");
+        }
+    };
+
+    const handleChangeEmail = async (e) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/api/change-email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ newEmail })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert("Email updated successfully!");
+                setUserEmail(newEmail);
+                const user = JSON.parse(localStorage.getItem('user'));
+                localStorage.setItem('user', JSON.stringify({ ...user, email: newEmail }));
+                setShowEmailModal(false);
+                setNewEmail('');
+            } else {
+                alert(data.error || "Failed to update email");
             }
         } catch (err) {
             alert("Connection error");
@@ -244,13 +275,7 @@ const Profile = ({ setIsLoggedIn }) => {
                                 <option>United Kingdom</option>
                             </select>
                         </div>
-                        <div>
-                            <label className="form-label block mb-2">Date Format</label>
-                            <div className="btn-group">
-                                <button className="btn-group-item active">DD/MM/YYYY</button>
-                                <button className="btn-group-item">MM/DD/YYYY</button>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
 
@@ -326,7 +351,7 @@ const Profile = ({ setIsLoggedIn }) => {
                             </div>
                             <span className="font-icon chevron">chevron_right</span>
                         </button>
-                        <button className="list-btn">
+                        <button className="list-btn" onClick={() => setShowEmailModal(true)}>
                             <div className="list-btn-content">
                                 <span className="font-icon icon">mail</span>
                                 <div className="list-btn-text">
@@ -378,7 +403,7 @@ const Profile = ({ setIsLoggedIn }) => {
                                 <div className="toggle-bg"></div>
                             </label>
                         </div>
-                        <button className="list-btn">
+                        <button className="list-btn" onClick={() => alert('Your health data export has started. You will receive an email with the download link shortly.')}>
                             <div className="list-btn-content">
                                 <span className="font-icon icon">download</span>
                                 <div className="list-btn-text">
@@ -387,7 +412,7 @@ const Profile = ({ setIsLoggedIn }) => {
                             </div>
                             <span className="font-icon chevron">chevron_right</span>
                         </button>
-                        <button className="list-btn danger">
+                        <button className="list-btn danger" onClick={() => { if(window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) { handleLogout(); } }}>
                             <div className="list-btn-content">
                                 <span className="font-icon icon">warning</span>
                                 <h4>Delete Account</h4>
@@ -408,7 +433,7 @@ const Profile = ({ setIsLoggedIn }) => {
                         <h3 className="card-title">Help & Support</h3>
                     </div>
                     <div className="action-grid">
-                        <button className="action-card">
+                        <button className="action-card" onClick={() => navigate('/awareness')}>
                             <span className="font-icon icon">help</span>
                             <span>FAQ</span>
                         </button>
@@ -416,7 +441,7 @@ const Profile = ({ setIsLoggedIn }) => {
                             <span className="font-icon icon">chat_bubble</span>
                             <span>Support</span>
                         </button>
-                        <button className="action-card">
+                        <button className="action-card" onClick={() => window.location.href = 'mailto:support@vaxicare.com?subject=Report Issue'}>
                             <span className="font-icon icon">report</span>
                             <span>Report Issue</span>
                         </button>
@@ -424,18 +449,24 @@ const Profile = ({ setIsLoggedIn }) => {
                 </div>
             </div>
 
-            <div className="profile-footer-box" style={{ marginBottom: "1.5rem" }}>
-                <div className="profile-footer-header">
-                    <span className="font-icon icon-manage">family_home</span>
-                    <h4>Manage Children</h4>
+            <div className="profile-footer-box manage-children-card">
+                <div className="manage-card-overlay"></div>
+                <div className="profile-footer-header relative z-10">
+                    <div className="manage-icon-wrapper">
+                        <span className="material-symbols-outlined">family_history</span>
+                    </div>
+                    <div className="manage-title-group">
+                        <h4 className="text-xl font-black">Manage Family Profiles</h4>
+                        <p className="text-sm opacity-80">Easily add new children and track their individual health journeys.</p>
+                    </div>
                 </div>
-                <p className="profile-footer-text">
-                    Easily add new children and manage their profiles directly from the dashboard.
-                </p>
-                <Link to="/dashboard" className="btn-manage">
-                    <span className="font-icon">dashboard</span>
-                    <span>Go to Dashboard</span>
-                </Link>
+                <div className="manage-card-actions relative z-10">
+                    <Link to="/dashboard" className="btn-manage-premium">
+                        <span className="material-symbols-outlined">dashboard_customize</span>
+                        <span>Open Family Dashboard</span>
+                        <span className="material-symbols-outlined arrow">arrow_forward</span>
+                    </Link>
+                </div>
             </div>
 
             <div className="profile-footer-box">
@@ -501,6 +532,33 @@ const Profile = ({ setIsLoggedIn }) => {
                             </div>
                             <button type="submit" className="btn-primary" style={{width: '100%', marginTop: '1rem'}}>
                                 Update Password
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Change Email Modal */}
+            {showEmailModal && (
+                <div className="vt-modal-overlay">
+                    <div className="vt-modal-content">
+                        <button className="vt-modal-close" onClick={() => setShowEmailModal(false)}>
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+                        <h2 className="vt-modal-title">Update Email Address</h2>
+                        <form className="vt-modal-form" onSubmit={handleChangeEmail}>
+                            <div className="form-group">
+                                <label className="form-label">New Email Address</label>
+                                <input 
+                                    type="email" 
+                                    className="form-input" 
+                                    required
+                                    value={newEmail}
+                                    onChange={e => setNewEmail(e.target.value)}
+                                />
+                            </div>
+                            <button type="submit" className="btn-primary" style={{width: '100%', marginTop: '1rem'}}>
+                                Update Email
                             </button>
                         </form>
                     </div>

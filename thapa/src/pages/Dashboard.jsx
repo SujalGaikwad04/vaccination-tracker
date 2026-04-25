@@ -8,6 +8,7 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
     const children = childProfiles || [];
     const [showAddModal, setShowAddModal] = useState(false);
     const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const [milestoneModal, setMilestoneModal] = useState({ show: false, milestone: null });
     const navigate = useNavigate();
 
     const handleAddChild = async (e) => {
@@ -146,6 +147,34 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
 
     const allAlerts = [...missedAlerts, ...upcomingAlerts].slice(0, 3);
 
+    // Dynamic Milestones logic
+    const milestonesList = [
+        { 
+            id: 'first-shot', 
+            label: 'First Shot', 
+            icon: 'stars', 
+            isUnlocked: activeChild?.completed > 0 
+        },
+        { 
+            id: 'on-track', 
+            label: 'On Track', 
+            icon: 'trending_up', 
+            isUnlocked: activeChild?.missed === 0 
+        },
+        { 
+            id: 'super-guard', 
+            label: 'Super Guard', 
+            icon: 'workspace_premium', 
+            isUnlocked: activeChild?.progress >= 50 
+        },
+        { 
+            id: 'immune-pro', 
+            label: 'Immune Pro', 
+            icon: 'shield', 
+            isUnlocked: activeChild?.progress === 100 
+        }
+    ];
+
     return (
         <div className="dashboard-container relative min-h-screen text-slate-900 dark:text-slate-100">
             {/* Empty State */}
@@ -159,7 +188,8 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
                         <p className="text-slate-500 mb-8 leading-relaxed text-sm md:text-base">Get started by adding your child's profile. We will automatically generate their vaccination schedule based on their date of birth.</p>
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 mx-auto w-full md:w-auto"
+                            className="text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 mx-auto w-full md:w-auto hover:opacity-90"
+                            style={{ backgroundColor: '#ec5b13', boxShadow: '0 10px 15px -3px rgba(236, 91, 19, 0.3)' }}
                         >
                             <span className="material-symbols-outlined font-bold">add_circle</span>
                             Add Child Profile
@@ -177,7 +207,11 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
                             {/* Child Overview Hero */}
                             <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-8 items-center">
                                 <div className="size-32 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-sm">
-                                    <img className="w-full h-full object-cover" data-alt={`Detailed portrait of ${activeChild.name} the baby`} src={activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=${(activeChild.gender && (activeChild.gender.toLowerCase() === 'male' || activeChild.gender.toLowerCase() === 'boy')) ? 'C4D9FF' : (activeChild.gender && (activeChild.gender.toLowerCase() === 'female' || activeChild.gender.toLowerCase() === 'girl')) ? 'F5AFAF' : 'ec5b13'}&color=fff&size=128&rounded=false`} />
+                                    <img 
+                                        className="w-full h-full object-cover" 
+                                        data-alt={`Detailed portrait of ${activeChild.name} the baby`} 
+                                        src={activeChild.avatarUrl || (activeChild.gender?.toLowerCase() === 'male' || activeChild.gender?.toLowerCase() === 'boy' ? '/baby-boy.png' : activeChild.gender?.toLowerCase() === 'female' || activeChild.gender?.toLowerCase() === 'girl' ? '/baby-girl.png' : `https://ui-avatars.com/api/?name=${activeChild.name}&background=ec5b13&color=fff&size=128&rounded=false`)} 
+                                    />
                                 </div>
                                 <div className="flex-1 space-y-4 w-full">
                                     <div className="flex flex-wrap justify-between items-start gap-4">
@@ -278,8 +312,8 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
                                         <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">badge</span>
                                         <span className="text-xs font-bold">Digital Card</span>
                                     </button>
-                                    <button onClick={() => navigate('/profile')} className="flex flex-col items-center justify-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-2xl hover:bg-red-100 transition-colors group">
-                                        <span className="material-symbols-outlined text-red-500 group-hover:scale-110 transition-transform">emergency_home</span>
+                                    <button onClick={() => window.location.href = 'tel:108'} className="flex flex-col items-center justify-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-2xl hover:bg-red-100 transition-colors group">
+                                        <span className="material-symbols-outlined text-red-500 group-hover:scale-110 transition-transform">report</span>
                                         <span className="text-xs font-bold text-red-600">Emergency</span>
                                     </button>
                                 </div>
@@ -369,45 +403,114 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
                                     </button>
                                 </div>
                             </section>
-                            {/* Milestones */}
                             <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
                                 <h3 className="font-bold text-lg mb-4">Milestones</h3>
                                 <div className="flex flex-wrap gap-3">
-                                    <div className="bg-primary/10 text-primary px-3 py-2 rounded-xl flex flex-col items-center justify-center text-center gap-1 w-[calc(50%-0.375rem)]">
-                                        <span className="material-symbols-outlined">stars</span>
-                                        <span className="text-[10px] font-bold">First Shot</span>
-                                    </div>
-                                    <div className="bg-primary/10 text-primary px-3 py-2 rounded-xl flex flex-col items-center justify-center text-center gap-1 w-[calc(50%-0.375rem)]">
-                                        <span className="material-symbols-outlined">trending_up</span>
-                                        <span className="text-[10px] font-bold">On Track</span>
-                                    </div>
-                                    <div className="bg-slate-100 dark:bg-slate-800 text-slate-400 px-3 py-2 rounded-xl flex flex-col items-center justify-center text-center gap-1 w-[calc(50%-0.375rem)] border border-dashed border-slate-300">
-                                        <span className="material-symbols-outlined">workspace_premium</span>
-                                        <span className="text-[10px] font-bold">Super Guard</span>
-                                    </div>
-                                    <div className="bg-slate-100 dark:bg-slate-800 text-slate-400 px-3 py-2 rounded-xl flex flex-col items-center justify-center text-center gap-1 w-[calc(50%-0.375rem)] border border-dashed border-slate-300">
-                                        <span className="material-symbols-outlined">shield</span>
-                                        <span className="text-[10px] font-bold">Immune Pro</span>
-                                    </div>
+                                    {milestonesList.map((m) => (
+                                        <div 
+                                            key={m.id}
+                                            onClick={() => setMilestoneModal({ show: true, milestone: m })}
+                                            className={`px-3 py-2 rounded-xl flex flex-col items-center justify-center text-center gap-1 w-[calc(50%-0.375rem)] transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                                                m.isUnlocked 
+                                                ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm' 
+                                                : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border border-dashed border-slate-300 dark:border-slate-700 opacity-60'
+                                            }`}
+                                            title={m.isUnlocked ? 'Unlocked' : 'Locked'}
+                                        >
+                                            <span className="material-symbols-outlined">{m.icon}</span>
+                                            <span className="text-[10px] font-bold">{m.label}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </section>
                             {/* Educational Card */}
-                            <section className="bg-slate-900 text-white rounded-2xl p-6 relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
+                            <section className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-6 relative overflow-hidden group shadow-xl">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-1000 blur-2xl"></div>
+                                <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/10 rounded-full -ml-10 -mb-10 group-hover:scale-150 transition-transform duration-1000 blur-xl"></div>
+                                
                                 <div className="relative z-10">
-                                    <span className="material-symbols-outlined text-primary mb-2">menu_book</span>
-                                    <h4 className="font-bold mb-2">Did you know?</h4>
-                                    <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                                        Breastfeeding provides antibodies that help protect babies from many infections, but vaccines are still essential for diseases like Polio and Measles.
+                                    <div className="size-10 rounded-xl bg-primary/20 flex items-center justify-center mb-4 border border-primary/20">
+                                        <span className="material-symbols-outlined text-primary">auto_stories</span>
+                                    </div>
+                                    <h4 className="font-bold text-lg mb-2">Health Insight</h4>
+                                    <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                                        Timely vaccinations are the most effective way to protect your baby's developing immune system from preventable diseases.
                                     </p>
-                                    <button className="text-xs font-bold text-primary flex items-center gap-1 hover:gap-2 transition-all">
-                                        Learn More <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                    <button className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center gap-2 transition-all border border-white/10">
+                                        Explore Knowledge Base
+                                        <span className="material-symbols-outlined text-sm">arrow_forward</span>
                                     </button>
+                                </div>
+                            </section>
+
+                            {/* Nearby Clinics Quick Link */}
+                            <section 
+                                onClick={() => navigate('/vaccine-tracker?action=showClinics')}
+                                className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all cursor-pointer group"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="size-12 rounded-2xl bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-all">
+                                        <span className="material-symbols-outlined text-2xl">medical_services</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-slate-900 dark:text-white">Nearby Clinics</h4>
+                                        <p className="text-[10px] text-slate-500 font-medium">Find vaccination centers near you</p>
+                                    </div>
+                                    <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
                                 </div>
                             </section>
                         </aside>
                     </div>
                 </main>
+            )}
+
+            {/* Milestone Details Modal */}
+            {milestoneModal.show && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100 dark:border-slate-800 relative animate-in fade-in zoom-in duration-300">
+                        <button
+                            onClick={() => setMilestoneModal({ show: false, milestone: null })}
+                            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+
+                        <div className="text-center">
+                            <div className={`size-20 rounded-full mx-auto mb-6 flex items-center justify-center border-4 ${
+                                milestoneModal.milestone.isUnlocked 
+                                ? 'bg-primary/10 text-primary border-primary/20' 
+                                : 'bg-slate-50 text-slate-300 border-slate-100'
+                            }`}>
+                                <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                    {milestoneModal.milestone.icon}
+                                </span>
+                            </div>
+                            
+                            <h2 className="text-2xl font-black mb-2">{milestoneModal.milestone.label}</h2>
+                            <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-4 ${
+                                milestoneModal.milestone.isUnlocked 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-slate-100 text-slate-500'
+                            }`}>
+                                {milestoneModal.milestone.isUnlocked ? 'Achievement Unlocked' : 'Locked Milestone'}
+                            </span>
+                            
+                            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8">
+                                {milestoneModal.milestone.id === 'first' && "The journey begins! You've administered your child's first vaccination. One small shot for them, one giant leap for their health."}
+                                {milestoneModal.milestone.id === 'track' && "Perfect score! You're staying consistent with the recommended schedule. Keeping your child on track is the best protection."}
+                                {milestoneModal.milestone.id === 'guard' && "Guardian Hero! You've completed over 50% of the entire childhood immunization series. You're halfway to total protection!"}
+                                {milestoneModal.milestone.id === 'pro' && "Legendary Status! You've completed every single recommended vaccine. Your child is fully shielded and an Immune Pro!"}
+                            </p>
+
+                            <button
+                                onClick={() => setMilestoneModal({ show: false, milestone: null })}
+                                className="w-full py-4 rounded-2xl bg-slate-900 dark:bg-primary text-white font-bold hover:opacity-90 transition-all shadow-lg"
+                            >
+                                {milestoneModal.milestone.isUnlocked ? 'Awesome!' : 'Keep Going!'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Add Child Modal */}
@@ -462,7 +565,11 @@ const Dashboard = ({ childProfiles, setChildProfiles, activeChildIndex, setActiv
                                     <option value="AB-">AB-</option>
                                 </select>
                             </div>
-                            <button type="submit" className="w-full mt-8 bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-primary/20 border border-transparent text-lg">
+                            <button 
+                                type="submit" 
+                                className="w-full mt-8 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg border border-transparent text-lg hover:opacity-90"
+                                style={{ backgroundColor: '#ec5b13', boxShadow: '0 10px 15px -3px rgba(236, 91, 19, 0.3)' }}
+                            >
                                 Save Details
                             </button>
                         </form>

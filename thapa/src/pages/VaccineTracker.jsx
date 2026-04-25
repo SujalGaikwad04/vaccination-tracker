@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './VaccineTracker.css';
 import { generateVaccineSchedule, calculateMilestones } from '../utils/vaccinationData';
@@ -35,7 +36,7 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
                 new Date(activeChild.vaccines.find(v => v.status === 'due' || v.status === 'upcoming').dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'None'
             ) : defaultChild.nextDueDate,
         overallProgress: activeChild.vaccines ? Math.round((activeChild.vaccines.filter(v => v.status === 'done').length / activeChild.vaccines.length) * 100) || 0 : (activeChild.progress || 0),
-        avatarUrl: activeChild.avatarUrl || `https://ui-avatars.com/api/?name=${activeChild.name}&background=${(activeChild.gender && (activeChild.gender.toLowerCase() === 'male' || activeChild.gender.toLowerCase() === 'boy')) ? 'C4D9FF' : (activeChild.gender && (activeChild.gender.toLowerCase() === 'female' || activeChild.gender.toLowerCase() === 'girl')) ? 'F5AFAF' : 'ec5b13'}&color=fff&size=128&rounded=false`
+        avatarUrl: activeChild?.avatarUrl || (activeChild?.gender?.toLowerCase() === 'male' || activeChild?.gender?.toLowerCase() === 'boy' ? '/baby-boy.png' : activeChild?.gender?.toLowerCase() === 'female' || activeChild?.gender?.toLowerCase() === 'girl' ? '/baby-girl.png' : '/baby-boy.png')
     } : defaultChild;
 
     const [fallbackVaccines, setFallbackVaccines] = useState([
@@ -89,6 +90,7 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
 
     const [markDoneModal, setMarkDoneModal] = useState({ show: false, vaccine: null });
     const [viewDetailsModal, setViewDetailsModal] = useState({ show: false, vaccine: null });
+    const [recoveryModal, setRecoveryModal] = useState({ show: false, vaccine: null });
     const [showClinicsModal, setShowClinicsModal] = useState(false);
     const [clinicsData, setClinicsData] = useState({
         list: [],
@@ -97,6 +99,14 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
         locationFetched: false,
         selectedClinic: null
     });
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('action') === 'showClinics') {
+            setShowClinicsModal(true);
+            if (!clinicsData.locationFetched) fetchNearbyClinics();
+        }
+    }, []);
 
     const fetchNearbyClinics = () => {
         if (!navigator.geolocation) {
@@ -504,7 +514,12 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
                                                         </td>
                                                         <td>
                                                             {v.action === 'recovery' && (
-                                                                <button className="vt-btn-recovery">Recovery Plan</button>
+                                                                <button 
+                                                                    className="vt-btn-recovery"
+                                                                    onClick={() => setRecoveryModal({ show: true, vaccine: v })}
+                                                                >
+                                                                    Recovery Plan
+                                                                </button>
                                                             )}
                                                             {v.action === 'mark-done' && (
                                                                 <button
@@ -544,74 +559,6 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
                                 </div>
                             </div>
 
-                            {/* Bottom: Timeline + Tip */}
-                            <div className="vt-bottom-grid">
-                                {/* Developmental Timeline */}
-                                <div className="vt-timeline-card">
-                                    <div className="vt-timeline-header">
-                                        <h3 className="vt-timeline-title">
-                                            <span className="material-symbols-outlined">auto_awesome</span>
-                                            {childData.name}'s Developmental Timeline
-                                        </h3>
-                                        <span className="vt-timeline-hint">Swipe to explore</span>
-                                    </div>
-
-                                    <div className="vt-steps">
-                                        {milestones.map((m, i) => (
-                                            <div className="vt-step" key={i}>
-                                                {i < milestones.length - 1 && (
-                                                    <div className={`vt-step-connector ${m.type === 'completed' ? 'completed' : 'pending'}`}></div>
-                                                )}
-                                                <div className={`vt-step-circle ${m.type}`}>
-                                                    <span className="material-symbols-outlined">{m.icon}</span>
-                                                </div>
-                                                <p className={`vt-step-age ${m.type === 'current' ? 'active' : 'default'}`}>{m.age}</p>
-                                                <p className={`vt-step-text ${m.type === 'current' ? 'bold' :
-                                                    m.type === 'future' ? 'muted' : 'default'
-                                                    }`}>
-                                                    {m.label}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Parenting Tip */}
-                                <div className="vt-tip-card">
-                                    <div className="vt-tip-inner">
-                                        <div className="vt-tip-top">
-                                            <div className="vt-tip-icon-box">
-                                                <span className="material-symbols-outlined">emoji_objects</span>
-                                            </div>
-                                            <span className="vt-tip-age-badge">Age 18m Tip</span>
-                                        </div>
-                                        <h4 className="vt-tip-title">Parenting Tip of the Week</h4>
-                                        <p className="vt-tip-text">
-                                            At 18 months, {childData.name} is likely becoming more independent. Try offering
-                                            limited choices ("Do you want the blue shirt or the red one?") to foster autonomy
-                                            while maintaining boundaries. This age is also crucial for the MMR booster—ensure
-                                            his hydration is high post-vaccination.
-                                        </p>
-                                    </div>
-
-                                    <div className="vt-tip-footer">
-                                        <a href="#" className="vt-tip-link">
-                                            Explore Development Guide
-                                            <span className="material-symbols-outlined">arrow_forward</span>
-                                        </a>
-                                        <div className="vt-tip-avatars">
-                                            <div className="vt-tip-avatar-img">
-                                                <img src={childData.parentAvatarUrl} alt="User" />
-                                            </div>
-                                            <div className="vt-tip-avatar-count">+12k</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="vt-tip-bg-icon">
-                                        <span className="material-symbols-outlined">family_restroom</span>
-                                    </div>
-                                </div>
-                            </div>
                         </>
                     ) : (
                         /* ===== HEALTH RECORDS VIEW ===== */
@@ -812,6 +759,110 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
                 </div>
             )}
 
+            {/* View Details Modal */}
+            {viewDetailsModal.show && (
+                <div className="vt-modal-overlay">
+                    <div className="vt-modal-card animate-in fade-in zoom-in duration-300">
+                        <div className="vt-modal-header" style={{ background: 'linear-gradient(to right, #f0f9ff, #ffffff)' }}>
+                            <div className="vt-modal-icon-wrapper" style={{ backgroundColor: '#e0f2fe', color: '#0ea5e9', boxShadow: '0 8px 16px -4px rgba(14, 165, 233, 0.2)' }}>
+                                <span className="material-symbols-outlined">info</span>
+                            </div>
+                            <div className="vt-modal-title-area">
+                                <h2 className="vt-modal-title">Vaccine Details</h2>
+                                <p className="vt-modal-subtitle">{viewDetailsModal.vaccine.name}</p>
+                            </div>
+                            <button className="vt-modal-close" onClick={() => setViewDetailsModal({ show: false, vaccine: null })}>
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        
+                        <div className="vt-modal-body" style={{ padding: '2rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+                                <div className="vt-detail-item">
+                                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Dose Information</span>
+                                    <span style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a' }}>{viewDetailsModal.vaccine.when}</span>
+                                </div>
+                                <div className="vt-detail-item">
+                                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Status</span>
+                                    <span className={`vt-status-badge ${getStatusColor(viewDetailsModal.vaccine.status)}`} style={{ fontSize: '12px' }}>
+                                        {getStatusLabel(viewDetailsModal.vaccine.status)}
+                                    </span>
+                                </div>
+                                <div className="vt-detail-item">
+                                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Due Date</span>
+                                    <span style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a' }}>
+                                        {new Date(viewDetailsModal.vaccine.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                    </span>
+                                </div>
+                                {viewDetailsModal.vaccine.status === 'done' && (
+                                    <div className="vt-detail-item">
+                                        <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Administered On</span>
+                                        <span style={{ fontSize: '15px', fontWeight: '700', color: '#10b981' }}>
+                                            {new Date(viewDetailsModal.vaccine.dateAdministered || viewDetailsModal.vaccine.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div style={{ padding: '1.5rem', backgroundColor: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                                <h4 style={{ fontSize: '14px', fontWeight: '800', color: '#1e293b', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#3b82f6' }}>description</span>
+                                    About this Vaccine
+                                </h4>
+                                <p style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6', margin: 0 }}>
+                                    {viewDetailsModal.vaccine.description || `${viewDetailsModal.vaccine.name} is a vital part of the immunization schedule designed to protect children from various infectious diseases at specific ages.`}
+                                </p>
+                            </div>
+
+                            {viewDetailsModal.vaccine.status === 'done' && (
+                                <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid #f1f5f9' }}>
+                                        <span style={{ fontSize: '13px', color: '#64748b' }}>Hospital</span>
+                                        <span style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>{viewDetailsModal.vaccine.hospitalName || 'Not recorded'}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid #f1f5f9' }}>
+                                        <span style={{ fontSize: '13px', color: '#64748b' }}>Doctor</span>
+                                        <span style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>{viewDetailsModal.vaccine.doctorName || 'Not recorded'}</span>
+                                    </div>
+                                    {viewDetailsModal.vaccine.proofUrl && (
+                                        <div style={{ marginTop: '0.5rem' }}>
+                                            <a 
+                                                href={viewDetailsModal.vaccine.proofUrl} 
+                                                target="_blank" 
+                                                rel="noreferrer" 
+                                                style={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: '8px', 
+                                                    fontSize: '13px', 
+                                                    fontWeight: '700', 
+                                                    color: '#3b82f6', 
+                                                    textDecoration: 'none',
+                                                    padding: '10px',
+                                                    backgroundColor: '#eff6ff',
+                                                    borderRadius: '10px'
+                                                }}
+                                            >
+                                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>attachment</span>
+                                                View Attached Proof Document
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <button 
+                                className="vt-btn-mark-done" 
+                                style={{ width: '100%', marginTop: '2rem', padding: '0.875rem', backgroundColor: '#f1f5f9', border: 'none', color: '#475569', fontWeight: 'bold' }}
+                                onClick={() => setViewDetailsModal({ show: false, vaccine: null })}
+                            >
+                                Close Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Nearby Clinics Modal */}
             {showClinicsModal && (
                 <div className="vt-modal-overlay">
@@ -821,7 +872,83 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
                         </button>
                         <div className="vt-clinics-header">
                             <span className="material-symbols-outlined teal" style={{fontSize: '48px'}}>medical_services</span>
-                            <h2 className="vt-modal-title">Nearby Vaccination Clinics</h2>
+                            <h2 className="vt-modal-title">Nearby Vaccination Centers</h2>
+                            
+                            <div className="vt-clinics-search-bar" style={{
+                                margin: '1rem 0',
+                                padding: '0.5rem',
+                                background: '#f8fafc',
+                                borderRadius: '12px',
+                                border: '1px solid #e2e8f0',
+                                display: 'flex',
+                                gap: '0.5rem'
+                            }}>
+                                <input 
+                                    id="clinic-search-input"
+                                    type="text" 
+                                    placeholder="Search any city or area (e.g. Panvel, Mumbai)..." 
+                                    onKeyDown={async (e) => {
+                                        if (e.key === 'Enter' && e.target.value) {
+                                            const query = e.target.value;
+                                            setClinicsData(prev => ({ ...prev, loading: true, error: null }));
+                                            try {
+                                                const response = await fetch(`${API_URL}/api/nearby-clinics?query=${encodeURIComponent(query)}`);
+                                                const data = await response.json();
+                                                if (data.success) {
+                                                    setClinicsData({
+                                                        list: data.clinics,
+                                                        loading: false,
+                                                        error: null,
+                                                        locationFetched: true,
+                                                        selectedClinic: data.clinics[0]
+                                                    });
+                                                } else {
+                                                    throw new Error(data.error || 'Location not found');
+                                                }
+                                            } catch (err) {
+                                                setClinicsData(prev => ({ ...prev, loading: false, error: err.message }));
+                                            }
+                                        }
+                                    }}
+                                    style={{
+                                        flex: 1,
+                                        border: 'none',
+                                        background: 'transparent',
+                                        padding: '0.5rem',
+                                        fontSize: '14px',
+                                        outline: 'none'
+                                    }}
+                                />
+                                <button 
+                                    onClick={async () => {
+                                        const query = document.getElementById('clinic-search-input').value;
+                                        if (query) {
+                                            setClinicsData(prev => ({ ...prev, loading: true, error: null }));
+                                            try {
+                                                const response = await fetch(`${API_URL}/api/nearby-clinics?query=${encodeURIComponent(query)}`);
+                                                const data = await response.json();
+                                                if (data.success) {
+                                                    setClinicsData({
+                                                        list: data.clinics,
+                                                        loading: false,
+                                                        error: null,
+                                                        locationFetched: true,
+                                                        selectedClinic: data.clinics[0]
+                                                    });
+                                                } else {
+                                                    throw new Error(data.error || 'Location not found');
+                                                }
+                                            } catch (err) {
+                                                setClinicsData(prev => ({ ...prev, loading: false, error: err.message }));
+                                            }
+                                        }
+                                    }}
+                                    style={{ background: '#0d9488', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' }}
+                                >
+                                    Search
+                                </button>
+                            </div>
+
                             {clinicsData.loading ? (
                                 <p style={{color: '#64748b'}}>Fetching your location and finding best clinics...</p>
                             ) : (
@@ -926,6 +1053,113 @@ const VaccineTracker = ({ activeChild, childProfiles, setChildProfiles }) => {
                                 </button>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+            {/* Recovery Plan Modal */}
+            {recoveryModal.show && (
+                <div className="vt-modal-overlay">
+                    <div className="vt-modal-card animate-in fade-in zoom-in duration-300">
+                        <div className="vt-modal-header" style={{ background: 'linear-gradient(to right, #fff5f5, #ffffff)' }}>
+                            <div className="vt-modal-icon-wrapper red" style={{ boxShadow: '0 8px 16px -4px rgba(244, 63, 94, 0.2)' }}>
+                                <span className="material-symbols-outlined">medical_information</span>
+                            </div>
+                            <div className="vt-modal-title-area">
+                                <h2 className="vt-modal-title">Recovery Plan</h2>
+                                <p className="vt-modal-subtitle">Guidance for missed: <strong>{recoveryModal.vaccine.name}</strong></p>
+                            </div>
+                            <button className="vt-modal-close" onClick={() => setRecoveryModal({ show: false, vaccine: null })}>
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        
+                        <div className="vt-modal-body" style={{ padding: '2rem' }}>
+                            {/* Alert Banner */}
+                            <div style={{ 
+                                display: 'flex', 
+                                gap: '1rem', 
+                                backgroundColor: '#fff7ed', 
+                                border: '1px solid #ffedd5', 
+                                borderRadius: '16px', 
+                                padding: '1.25rem',
+                                marginBottom: '2rem'
+                            }}>
+                                <span className="material-symbols-outlined" style={{ color: '#ea580c' }}>lightbulb</span>
+                                <p style={{ color: '#9a3412', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
+                                    Don't worry! If a dose is missed, we just need to "catch up." The most important thing is to get the next dose as soon as possible.
+                                </p>
+                            </div>
+                            
+                            <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#1e293b', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                Recovery Roadmap
+                            </h4>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                {/* Step 1 */}
+                                <div style={{ display: 'flex', gap: '1.25rem' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#f43f5e', color: 'white', display: 'flex', alignItems: 'center', justifyCenter: 'center', fontSize: '12px', fontWeight: 'bold' }}>1</div>
+                                        <div style={{ width: '2px', flex: 1, backgroundColor: '#f1f5f9', margin: '4px 0' }}></div>
+                                    </div>
+                                    <div style={{ paddingBottom: '0.5rem' }}>
+                                        <h5 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>Contact Pediatrician</h5>
+                                        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>Call your doctor to notify them about the missed {recoveryModal.vaccine.name} dose.</p>
+                                    </div>
+                                </div>
+
+                                {/* Step 2 */}
+                                <div style={{ display: 'flex', gap: '1.25rem' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#f1f5f9', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyCenter: 'center', fontSize: '12px', fontWeight: 'bold', border: '2px solid #e2e8f0' }}>2</div>
+                                        <div style={{ width: '2px', flex: 1, backgroundColor: '#f1f5f9', margin: '4px 0' }}></div>
+                                    </div>
+                                    <div style={{ paddingBottom: '0.5rem' }}>
+                                        <h5 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>Schedule Catch-up</h5>
+                                        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>Book a slot for administration. No need to restart the entire series.</p>
+                                    </div>
+                                </div>
+
+                                {/* Step 3 */}
+                                <div style={{ display: 'flex', gap: '1.25rem' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#f1f5f9', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyCenter: 'center', fontSize: '12px', fontWeight: 'bold', border: '2px solid #e2e8f0' }}>3</div>
+                                    </div>
+                                    <div>
+                                        <h5 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>Update Health Record</h5>
+                                        <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>Once done, use the button below to update this tracker.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <button 
+                                    className="vt-btn-mark-done" 
+                                    style={{ 
+                                        width: '100%', 
+                                        padding: '1rem', 
+                                        fontSize: '14px', 
+                                        backgroundColor: '#ec5b13', 
+                                        color: 'white', 
+                                        border: 'none',
+                                        boxShadow: '0 10px 15px -3px rgba(236, 91, 19, 0.2)'
+                                    }}
+                                    onClick={() => {
+                                        const v = recoveryModal.vaccine;
+                                        setRecoveryModal({ show: false, vaccine: null });
+                                        setMarkDoneModal({ show: true, vaccine: v });
+                                    }}
+                                >
+                                    I've received this dose now
+                                </button>
+                                <button 
+                                    className="vt-btn-view" 
+                                    style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+                                    onClick={() => setRecoveryModal({ show: false, vaccine: null })}
+                                >
+                                    Dismiss for now
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

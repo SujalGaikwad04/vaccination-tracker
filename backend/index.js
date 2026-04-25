@@ -282,6 +282,23 @@ app.post('/api/children', authenticateToken, async (req, res) => {
     }
 });
 
+// Delete Child
+app.delete('/api/children/:id', authenticateToken, async (req, res) => {
+    const childId = req.params.id;
+    try {
+        const [result] = await pool.query('DELETE FROM children WHERE id = ? AND user_id = ?', [childId, req.user.id]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Child not found or unauthorized' });
+        }
+        
+        res.json({ message: 'Child deleted successfully', success: true });
+    } catch (err) {
+        console.error('Delete Child Error:', err.message);
+        res.status(500).json({ error: 'Failed to delete child' });
+    }
+});
+
 // Update Vaccine
 app.put('/api/vaccines/:id', authenticateToken, async (req, res) => {
     const vaccineId = req.params.id;
@@ -334,7 +351,59 @@ app.get('/api/public/child/:id', async (req, res) => {
 
 // Send Card via Email
 app.post('/api/send-card-email', async (req, res) => {
-    // ... existing code ...
+    const { email, childName, shareLink, pdfAttachment } = req.body;
+
+    if (!email || !childName) {
+        return res.status(400).json({ error: 'Email and child name are required' });
+    }
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: `Vaccination Record Certificate - ${childName}`,
+        html: `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
+                <div style="background-color: #0f172a; padding: 32px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Digital Vaccination Record</h1>
+                    <p style="color: #94a3b8; margin-top: 8px;">Official Record for ${childName}</p>
+                </div>
+                <div style="padding: 32px; background-color: white;">
+                    <p style="color: #475569; line-height: 1.6; font-size: 16px;">Hello,</p>
+                    <p style="color: #475569; line-height: 1.6; font-size: 16px;">
+                        Attached is the digital vaccination certificate for <strong>${childName}</strong>. 
+                        This record is issued by VaxiCare Global Health Services and is fully validated.
+                    </p>
+                    <div style="margin: 32px 0; text-align: center;">
+                        <a href="${shareLink}" style="background-color: #ec5b13; color: white; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
+                            View Live Digital Record
+                        </a>
+                    </div>
+                    <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
+                        You can also download the attached professional PDF for your offline records or to share with pediatricians.
+                    </p>
+                </div>
+                <div style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
+                    <p style="color: #94a3b8; font-size: 12px; margin: 0;">VaxiCare © 2023 • Secure Health Record Management</p>
+                </div>
+            </div>
+        `,
+        attachments: pdfAttachment ? [
+            {
+                filename: `${childName.replace(/\s+/g, '_')}_Vaccination_Record.pdf`,
+                content: pdfAttachment,
+                encoding: 'base64'
+            }
+        ] : []
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Emailed vaccination card for ${childName} to ${email}`);
+        res.json({ message: 'Email sent successfully', success: true });
+    } catch (err) {
+        console.error('Email Card Error:', err.message);
+        res.status(500).json({ error: 'Failed to send email card', details: err.message });
+    }
 });
 
 // Change Password Endpoint
@@ -371,10 +440,60 @@ app.post('/api/change-password', authenticateToken, async (req, res) => {
     }
 });
 
+// Change Email Endpoint
+app.post('/api/change-email', authenticateToken, async (req, res) => {
+    const { newEmail } = req.body;
+    const userId = req.user.id;
+
+    if (!newEmail || !newEmail.includes('@')) {
+        return res.status(400).json({ error: 'Valid email address is required' });
+    }
+
+    try {
+        if (!pool) pool = await poolPromise;
+
+        // Check if email is already taken
+        const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [newEmail]);
+        if (existing.length > 0) {
+            return res.status(400).json({ error: 'Email is already in use by another account' });
+        }
+
+        // Update DB
+        await pool.query('UPDATE users SET email = ? WHERE id = ?', [newEmail, userId]);
+
+        res.json({ success: true, message: 'Email updated successfully' });
+    } catch (err) {
+        console.error('Change Email Error:', err.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Nearby Clinics API (Google Places Integration)
 app.get('/api/nearby-clinics', async (req, res) => {
-    const { lat, lng, radius = 5000 } = req.query;
+    let { lat, lng, radius = 5000, query } = req.query;
     const apiKey = process.env.GOOGLE_API_KEY;
+
+    // If query is provided, geocode it first to get lat/lng
+    if (query && (!lat || !lng)) {
+        try {
+            console.log(`Geocoding query: ${query}`);
+            const geocodeUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
+            const geocodeRes = await axios.get(geocodeUrl, {
+                headers: { 'User-Agent': 'VaxiCare-App' }
+            });
+
+            if (geocodeRes.data && geocodeRes.data.length > 0) {
+                lat = geocodeRes.data[0].lat;
+                lng = geocodeRes.data[0].lon;
+                console.log(`Geocoded ${query} to ${lat}, ${lng}`);
+            } else {
+                return res.status(404).json({ error: 'Location not found' });
+            }
+        } catch (err) {
+            console.error('Geocoding error:', err.message);
+            return res.status(500).json({ error: 'Failed to find location' });
+        }
+    }
 
     if (!lat || !lng) {
         return res.status(400).json({ error: 'Latitude and Longitude are required' });
